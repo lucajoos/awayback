@@ -1,6 +1,6 @@
 {
   "name": "onceupon.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Custom event system for JavaScript exported as Node.js module.",
 
   "repository": "gitlab:1a85ra7z/onceupon.js",
