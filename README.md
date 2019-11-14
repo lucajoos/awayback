@@ -1,4 +1,4 @@
-# onceupon.js v1.0.2
+# onceupon.js v1.0.3
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
 ```javascript
@@ -17,7 +17,7 @@ Install using [NPM](https://npmjs.org):
 
 ```
 $ npm i -g npm
-$ npm i --save @1a85ra7z/onceupon
+$ npm i --save onceupon.js
 ```
 
 In Node.js:
