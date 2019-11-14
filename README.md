@@ -56,7 +56,7 @@ The second one is by using the function `once`. The callback is executed only on
 ```javascript
 onceupon.once('name', (data) => {
     // Event is fired, callback executed
-    // Use transmitted data 
+    // Use transmitted data
     console.log(data);
 });
 ```
