@@ -2,35 +2,35 @@ module.exports = () => {
     let r = {
         events: {},
 
-        fire: (n, d) => {
-            if(r.events[n] === undefined) {
-                r.create(n);
+        fire: (event, data) => {
+            if(r.events[event] === undefined) {
+                r.create(event);
             }
 
-            r.events[n].fired++;
+            r.events[event].fired++;
 
-            r.events[n].callbacks.forEach(e => {
+            r.events[event].callbacks.forEach(e => {
                 if(e.type === 0 && e.fired === 0) {
-                    e.do(d !== undefined ? d : null, n);
+                    e.do(data !== undefined ? data : null, event);
                     e.fired++;
                 } else if(e.type === 1) {
-                    e.do(d !== undefined ? d : null, n);
+                    e.do(data !== undefined ? data : null, event);
                     e.fired++;
                 }
             });
         },
 
-        create: n => {
-            r.events[n] = {
+        create: event => {
+            r.events[event] = {
                 callbacks: new Proxy([], {
                     set: (target, key, value) => {
                         target[key] = value;
 
-                        if(r.events[n].fired > 0) {
-                            r.events[n].callbacks.forEach(c => {
+                        if(r.events[event].fired > 0) {
+                            r.events[event].callbacks.forEach(c => {
                                 let exit = false;
 
-                                while(c.fired !== r.events[n].fired && !exit) {
+                                while(c.fired !== r.events[event].fired && !exit) {
                                     if(c.type === 0 && c.fired === 0) {
                                         c.do();
                                         c.fired++;
