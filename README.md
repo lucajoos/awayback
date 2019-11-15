@@ -1,4 +1,4 @@
-# onceupon.js v1.0.4
+# onceupon.js v1.0.5
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
 ```javascript
@@ -29,7 +29,10 @@ const onceupon = require('onceupon.js')();
 
 ## API
 ### .create(event)
-Optionally, an event with any name can now be created.
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+Optionally, an event with any name can be created.
 
 ```javascript
 onceupon.create('name');
@@ -37,8 +40,9 @@ onceupon.create('name');
 
 ### .on(event, callback)
 
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
-    - `data` &lt;Unkown&gt;
+    - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 There are to possibilities to listen to created events.
@@ -56,8 +60,10 @@ onceupon.on('name', (data) => {
 ```
 
 ### .once(event, callback)
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
-    - `data` &lt;Unkown&gt;
+    - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 The second one is by using the function `once`. The callback is executed only once at the first firing of the event.
@@ -71,6 +77,10 @@ onceupon.once('name', (data) => {
 ```
 
 ### .fire(event, data)
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `data` &lt;Any&gt;
+
 Events can be fired using the function `fire`.
 The first required argument is the name of the event, the second, optional one, is data that can be transmitted.
 
