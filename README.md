@@ -1,10 +1,15 @@
-# onceupon.js v1.0.5
+# onceupon.js v1.0.6
+
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
+
+[![npm](https://img.shields.io/npm/v/onceupon.js)](https://www.npmjs.com/package/onceupon.js)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/onceupon.js)](https://www.npmjs.com/package/onceupon.js)
+[![npm](https://img.shields.io/npm/dm/onceupon.js)](https://www.npmjs.com/package/onceupon.js)
 
 ```javascript
 const ou = require('onceupon.js')();
 
-ou.on('hello', (data) => {
+ou.on('hello', (data, event) => {
     console.log(data);
     // world
 });
