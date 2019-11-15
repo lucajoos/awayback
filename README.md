@@ -1,4 +1,4 @@
-# onceupon.js v1.0.3
+# onceupon.js v1.0.4
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
 ```javascript
@@ -23,7 +23,7 @@ $ npm i --save onceupon.js
 In Node.js:
 
 ```javascript
-// Create a new instance of onceupon
+// Require onceupon & create a new instance
 const onceupon = require('onceupon.js')();
 ```
 
@@ -36,6 +36,11 @@ onceupon.create('name');
 ```
 
 ### .on(event, callback)
+
+- `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `data` &lt;Unkown&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
 There are to possibilities to listen to created events.
 
 The first one is by using the function `on`. The callback is executed with each time the event is fired.
@@ -51,6 +56,10 @@ onceupon.on('name', (data) => {
 ```
 
 ### .once(event, callback)
+- `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `data` &lt;Unkown&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
 The second one is by using the function `once`. The callback is executed only once at the first firing of the event.
 
 ```javascript
@@ -67,6 +76,16 @@ The first required argument is the name of the event, the second, optional one, 
 
 ```javascript
 onceupon.fire('name', 'data');
+```
+
+### Multiple events
+It is also possible to use a callback for several events. For this purpose, the events names can be separated by a `|`.
+
+```javascript
+// Listen to the events 'first' and 'second'
+onceupon.on('first|second', () => {
+    // Event 'first' or 'second' is fired, callback executed
+});
 ```
 
 ## License
