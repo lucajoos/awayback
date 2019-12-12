@@ -1,6 +1,6 @@
 {
   "name": "onceupon.js",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Custom event system for JavaScript exported as Node.js module.",
 
   "repository": "gitlab:1a85ra7z/onceupon.js",
@@ -8,7 +8,7 @@
   "main": "onceupon.js",
   "scripts": {},
 
-  "keywords": ["on", "once", "onceupon", "onceupon.js", "events"],
+  "keywords": ["onceupon.js", "events"],
 
   "author": "Luca Joos <1a85ra7z@gmail.com>",
   "license": "MIT"
