@@ -17,6 +17,10 @@ module.exports = () => {
                     e.do(data !== undefined ? data : null, event);
                     e.fired++;
                 }
+
+                if(typeof data !== 'undefined') {
+                    r.events[event].data = data;
+                }
             });
         },
 
@@ -32,10 +36,10 @@ module.exports = () => {
 
                                 while(c.fired !== r.events[event].fired && !exit) {
                                     if(c.type === 0 && c.fired === 0) {
-                                        c.do();
+                                        c.do(r.events[event].data !== undefined ? r.events[event].data : null, event);
                                         c.fired++;
                                     } else if(c.type === 1) {
-                                        c.do();
+                                        c.do(r.events[event].data !== undefined ? r.events[event].data : null, event);
                                         c.fired++;
                                     } else {
                                         exit = true;
