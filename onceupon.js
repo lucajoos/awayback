@@ -7,7 +7,9 @@ module.exports = () => {
                 r.create(event);
             }
 
-            r.events[event].fired++;
+            if(typeof data !== 'undefined') {
+                r.events[event].data.push(data);
+            }
 
             r.events[event].callbacks.forEach(e => {
                 if(e.type === 0 && e.fired === 0) {
@@ -17,11 +19,9 @@ module.exports = () => {
                     e.do(data !== undefined ? data : null, event);
                     e.fired++;
                 }
-
-                if(typeof data !== 'undefined') {
-                    r.events[event].data = data;
-                }
             });
+
+            r.events[event].fired++;
         },
 
         create: event => {
@@ -31,15 +31,15 @@ module.exports = () => {
                         target[key] = value;
 
                         if(r.events[event].fired > 0) {
-                            r.events[event].callbacks.forEach(c => {
+                            r.events[event].callbacks.forEach((c, i) => {
                                 let exit = false;
 
-                                while(c.fired !== r.events[event].fired && !exit) {
+                                while(c.fired !== r.events[event].fired && !exit && !c.last) {
                                     if(c.type === 0 && c.fired === 0) {
-                                        c.do(r.events[event].data !== undefined ? r.events[event].data : null, event);
+                                        c.do(r.events[event].data[i] !== undefined ? r.events[event].data[c.fired] : null, event);
                                         c.fired++;
                                     } else if(c.type === 1) {
-                                        c.do(r.events[event].data !== undefined ? r.events[event].data : null, event);
+                                        c.do(r.events[event].data[i] !== undefined ? r.events[event].data[c.fired] : null, event);
                                         c.fired++;
                                     } else {
                                         exit = true;
@@ -53,10 +53,11 @@ module.exports = () => {
                 }),
 
                 fired: 0,
+                data: []
             }
         },
 
-        once: (event, callback) => {
+        once: (event, callback, last) => {
             event.split('|').forEach(ce => {
                 ce = ce.trim();
 
@@ -68,13 +69,14 @@ module.exports = () => {
                     {
                         do: callback,
                         type: 0,
-                        fired: 0
+                        fired: 0,
+                        last: typeof last === 'boolean' ? last : false
                     }
                 )
             });
         },
 
-        on: (event, callback) => {
+        on: (event, callback, last) => {
             event.split('|').forEach(ce => {
                 ce = ce.trim();
 
@@ -86,7 +88,8 @@ module.exports = () => {
                     {
                         do: callback,
                         type: 1,
-                        fired: 0
+                        fired: 0,
+                        last: typeof last === 'boolean' ? last : false
                     }
                 )
             });

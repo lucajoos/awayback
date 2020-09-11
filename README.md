@@ -1,4 +1,4 @@
-# onceupon.js v1.0.9
+# onceupon.js v1.1.0
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -29,7 +29,7 @@ In Node.js:
 
 ```javascript
 // Require onceupon & create a new instance
-const onceupon = require('onceupon.js')();
+let onceupon = require('onceupon.js')();
 ```
 
 ## API
@@ -43,12 +43,13 @@ Optionally, an event with any name can be created.
 onceupon.create('name');
 ```
 
-### .on(event, callback)
+### .on(event, callback, last)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 There are to possibilities to listen to created events.
 
@@ -64,12 +65,32 @@ onceupon.on('name', (data) => {
 });
 ```
 
-### .once(event, callback)
+If the argument `load` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+
+```javascript
+// Fire event before the initialization of .on()
+// This event call is not executed
+onceupon.fire('event', 'before');
+
+setTimeout(() => {
+    onceupon.on('event', data => {
+        console.log(data);
+        // OUTPUT: after
+        // OUTPUT: another call
+    }, true);
+
+    onceupon.fire('event', 'after');
+    onceupon.fire('event', 'another call');
+}, 1000);
+```
+
+### .once(event, callback, last)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The second one is by using the function `once`. The callback is executed only once at the first firing of the event.
 
@@ -79,6 +100,23 @@ onceupon.once('name', (data) => {
     // Use transmitted data
     console.log(data);
 });
+```
+
+If the argument `load` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+
+```javascript
+// Fire event before the initialization of .once()
+// This event call is not executed
+onceupon.fire('event', 'before');
+
+setTimeout(() => {
+    onceupon.once('event', data => {
+        console.log(data);
+        // OUTPUT: after
+    }, true);
+
+    onceupon.fire('event', 'after');
+}, 1000);
 ```
 
 ### .fire(event, data)
