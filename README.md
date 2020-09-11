@@ -1,4 +1,4 @@
-# onceupon.js v1.1.1
+# onceupon.js v1.1.2
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -65,7 +65,7 @@ onceupon.on('name', (data) => {
 });
 ```
 
-If the argument `load` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .on()
@@ -102,7 +102,7 @@ onceupon.once('name', (data) => {
 });
 ```
 
-If the argument `load` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .once()
