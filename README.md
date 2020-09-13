@@ -1,4 +1,4 @@
-# onceupon.js v1.2.0
+# onceupon.js v1.2.1
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -82,6 +82,16 @@ setTimeout(() => {
 }, 1000);
 ```
 
+#### Multiple events
+It is also possible to use a callback for several events. For this purpose, the events names can be separated by a `|`.
+
+```javascript
+// Listen to the events 'first' and 'second'
+onceupon.on('first|second', () => {
+    // Event 'first' or 'second' is fired, callback executed
+});
+```
+
 ### .once(event, callback, last)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -119,6 +129,15 @@ setTimeout(() => {
 }, 1000);
 ```
 
+#### Multiple events
+It is also possible to use a callback for several events. For this purpose, the events names can be separated by a `|`.
+
+```javascript
+// Listen to the events 'first' and 'second'
+onceupon.once('first|second', () => {
+    // Event 'first' or 'second' is fired, callback executed
+});
+
 ### .fire(event, data)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -131,17 +150,7 @@ The first required argument is the name of the event, the second, optional one, 
 onceupon.fire('name', 'data');
 ```
 
-### Multiple events
-It is also possible to use a callback for several events. For this purpose, the events names can be separated by a `|`.
-
-```javascript
-// Listen to the events 'first' and 'second'
-onceupon.on('first|second', () => {
-    // Event 'first' or 'second' is fired, callback executed
-});
-```
-
-### Multiple arguments
+#### Multiple arguments
 Multiple arguments can also be passed. These are merged into an array.
 
 ```javascript
