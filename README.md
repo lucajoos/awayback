@@ -1,4 +1,4 @@
-# onceupon.js v1.2.1
+# onceupon.js v1.2.2
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -53,7 +53,7 @@ onceupon.create('name');
 
 
 The callback is executed each time the event is fired.
-There is a possible argument for the transfer of data that the function .fire can give. If there are several arguments at the event call, `data` is an array.
+There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
 onceupon.on('name', (data) => {
@@ -101,7 +101,7 @@ onceupon.on('first|second', () => {
 - `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is executed only once when the event is first called.
-If there are several arguments at the event call, `data` is an array.
+There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
 onceupon.once('name', (data) => {
@@ -137,6 +137,7 @@ It is also possible to use a callback for several events. For this purpose, the 
 onceupon.once('first|second', () => {
     // Event 'first' or 'second' is fired, callback executed
 });
+```
 
 ### .fire(event, data)
 
