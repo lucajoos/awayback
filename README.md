@@ -1,4 +1,4 @@
-# onceupon.js v1.2.2
+# onceupon.js v1.2.3
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -161,7 +161,7 @@ onceupon.on('event', data => {
     // OUTPUT: ['some', 'data']
 });
 
-onceupon.fire('event', 'some', 'data);
+onceupon.fire('event', 'some', 'data');
 ```
 
 ## License
