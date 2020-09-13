@@ -1,4 +1,4 @@
-# onceupon.js v1.1.5
+# onceupon.js v1.2.0
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -51,11 +51,9 @@ onceupon.create('name');
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-There are to possibilities to listen to created events.
 
-The first one is by using the function `on`. The callback is executed with each time the event is fired.
-
-There is a possible argument for the transfer of data that the function .fire can give.
+The callback is executed each time the event is fired.
+There is a possible argument for the transfer of data that the function .fire can give. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
 onceupon.on('name', (data) => {
@@ -92,7 +90,8 @@ setTimeout(() => {
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-The second one is by using the function `once`. The callback is executed only once at the first firing of the event.
+The callback is executed only once when the event is first called.
+If there are several arguments at the event call, `data` is an array.
 
 ```javascript
 onceupon.once('name', (data) => {
@@ -109,6 +108,7 @@ If the argument `last` is set to `true`, the listener does not execute event cal
 // This event call is not executed
 onceupon.fire('event', 'before');
 
+// Set a timeout
 setTimeout(() => {
     onceupon.once('event', data => {
         console.log(data);
@@ -139,6 +139,19 @@ It is also possible to use a callback for several events. For this purpose, the 
 onceupon.on('first|second', () => {
     // Event 'first' or 'second' is fired, callback executed
 });
+```
+
+### Multiple arguments
+Multiple arguments can also be passed. These are merged into an array.
+
+```javascript
+// Listen to the events 'first' and 'second'
+onceupon.on('event', data => {
+    console.log(data);
+    // OUTPUT: ['some', 'data']
+});
+
+onceupon.fire('event', 'some', 'data);
 ```
 
 ## License

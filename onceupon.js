@@ -2,21 +2,25 @@ module.exports = () => {
     let r = {
         events: {},
 
-        fire: (event, data) => {
+        fire: (event, ...data) => {
             if(r.events[event] === undefined) {
                 r.create(event);
             }
 
             if(typeof data !== 'undefined') {
+                if(data.length === 1) {
+                    data = data[0];
+                }
+                
                 r.events[event].data.push(data);
             }
 
             r.events[event].callbacks.forEach(e => {
                 if(e.type === 0 && e.fired === 0) {
-                    e.do(data !== undefined ? data : null, event);
+                    e.do(typeof data !== 'undefined' ? data : null, event);
                     e.fired++;
                 } else if(e.type === 1) {
-                    e.do(data !== undefined ? data : null, event);
+                    e.do(typeof data !== 'undefined' ? data : null, event);
                     e.fired++;
                 }
             });
