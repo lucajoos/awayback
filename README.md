@@ -1,4 +1,4 @@
-# onceupon.js v1.2.4
+# onceupon.js v1.3.0
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -33,6 +33,25 @@ let onceupon = require('onceupon.js')();
 ```
 
 ## API
+### onceupon(object)
+
+- `object` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+Require `onceupon` & create a new instance.
+
+```javascript
+let onceupon = require('onceupon.js')();
+```
+
+Assign `onceupon` object to an existing one.
+
+```javascript
+let data = {};
+
+let onceupon = require('onceupon.js')(data);
+// Merge onceupon & data object
+```
+
 ### .create(event)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)

@@ -1,4 +1,4 @@
-module.exports = () => {
+module.exports = object => {
     let r = {
         events: {},
 
@@ -100,5 +100,5 @@ module.exports = () => {
         },
     };
 
-    return r;
+    return typeof object === 'object' ? Object.assign(object, r) : r;
 };
