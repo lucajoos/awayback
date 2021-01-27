@@ -1,4 +1,4 @@
-# onceupon.js v1.4.0
+# onceupon.js v1.5.1
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -158,7 +158,54 @@ onceupon.once('first|second', () => {
 });
 ```
 
-### .fire(event, data)
+### .only(event, callback, last)
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `data` &lt;Any&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+The callback is only executed if this callback is the first and only one to be called.
+There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
+
+```javascript
+onceupon.only('name', (data) => {
+    // Event is fired, callback executed
+    // Use transmitted data
+    console.log(data);
+});
+```
+
+If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+
+```javascript
+// Fire event before the initialization of .once()
+// This event call is not executed
+onceupon.fire('event', 'before');
+
+// Set a timeout
+setTimeout(() => {
+    onceupon.only('event', data => {
+        console.log(data);
+        // OUTPUT: after
+    }, true);
+
+    onceupon.fire('event', 'after');
+}, 1000);
+```
+
+#### Multiple events
+It is also possible to use a callback for several events. For this purpose, the events names can be separated by a `|`.
+
+```javascript
+// Listen to the events 'first' and 'second'
+onceupon.only('first|second', () => {
+    // Event 'first' or 'second' is fired, callback executed
+});
+```
+
+### .fire(event, ...data)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `data` &lt;Any&gt;
@@ -171,7 +218,7 @@ onceupon.fire('name', 'data');
 ```
 
 #### Multiple arguments
-Multiple arguments can also be passed. These are merged into an array.
+If there are more than two arguments, `data` is an array.
 
 ```javascript
 // Listen to the events 'first' and 'second'
@@ -183,10 +230,27 @@ onceupon.on('event', data => {
 onceupon.fire('event', 'some', 'data');
 ```
 
+### .isFired(event)
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+Returns: [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+Returns if a given `event` was fired.
+
+```javascript
+// Fire an event
+onceupon.fire('event');
+
+// Check if event was fired
+onceupon.isFired('event')
+// true
+```
+
 ## License
 MIT License
 
-Copyright (c) 2020 Luca Joos
+Copyright (c) 2021 Luca Joos
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

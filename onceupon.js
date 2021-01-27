@@ -123,7 +123,7 @@ module.exports = object => {
         },
 
         isFired: event => {
-            return typeof r.events[event] === 'object' ? r.events[event].fired > 0 : false;
+            return event?.length > 0 ? (typeof r.events[event] === 'object' ? r.events[event].fired > 0 : false) : false;
         }
     };
 
