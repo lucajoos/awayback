@@ -1,4 +1,4 @@
-# onceupon.js v1.5.2
+# onceupon.js v1.5.3
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
@@ -119,15 +119,19 @@ onceupon.on('first|second', () => {
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-The callback is executed only once when the event is first called.
+The callback is only executed once when the event is called first.
 There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
-onceupon.once('name', (data) => {
+onceupon.once('event', (data) => {
     // Event is fired, callback executed
     // Use transmitted data
     console.log(data);
+    // one
 });
+
+onceupon.fire('event', 'one');
+onceupon.fire('event', 'two');
 ```
 
 If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
@@ -177,10 +181,22 @@ onceupon.only('name', (data) => {
 });
 ```
 
+```javascript
+onceupon.on('event', () => {});
+
+onceupon.only('event', (data) => {
+    // Event is fired, callback is not executed
+    // because it's not the only event listener
+    console.log(data);
+});
+
+onceupon.fire('event', 'data');
+```
+
 If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
 
 ```javascript
-// Fire event before the initialization of .once()
+// Fire event before the initialization of .only()
 // This event call is not executed
 onceupon.fire('event', 'before');
 
