@@ -111,14 +111,16 @@ module.exports = object => {
                     r.create(ce);
                 }
 
-                r.events[ce].callbacks.push(
-                    {
-                        do: callback,
-                        type: 2,
-                        fired: 0,
-                        last: typeof last === 'boolean' ? last : false
-                    }
-                )
+                if(r.events[ce].callbacks.length === 0) {
+                    r.events[ce].callbacks.push(
+                        {
+                            do: callback,
+                            type: 2,
+                            fired: 0,
+                            last: typeof last === 'boolean' ? last : false
+                        }
+                    )
+                }
             });
         },
 

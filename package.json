@@ -1,19 +1,36 @@
 {
   "name": "onceupon.js",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Custom event system for JavaScript exported as Node.js module.",
   "repository": "https://github.com/lucajoos/onceupon.js",
   "main": "onceupon.js",
+
   "scripts": {
     "pretest": "./node_modules/.bin/eslint --ignore-path .gitignore ."
   },
+
   "keywords": [
     "onceupon.js",
     "events"
   ],
-  "author": "Luca Joos <1a85ra7z@gmail.com>",
+
+  "author": {
+    "name": "Luca Joos",
+    "email": "1a85ra7z@gmail.com"
+  },
+
   "license": "MIT",
   "devDependencies": {
     "eslint": "^7.9.0"
-  }
+  },
+
+  "bugs": "https://github.com/lucajoos/onceupon.js/issues",
+
+  "engines": {
+    "node": ">= 6.0.0",
+    "npm": ">= 3.0.0",
+    "yarn": "^0.13.0"
+  },
+
+  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"]
 }
