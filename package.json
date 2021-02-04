@@ -1,6 +1,6 @@
 {
   "name": "onceupon.js",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "Custom event system for JavaScript exported as Node.js module.",
   "repository": "https://github.com/lucajoos/onceupon.js",
   "main": "onceupon.js",
@@ -24,13 +24,5 @@
     "eslint": "^7.9.0"
   },
 
-  "bugs": "https://github.com/lucajoos/onceupon.js/issues",
-
-  "engines": {
-    "node": ">= 6.0.0",
-    "npm": ">= 3.0.0",
-    "yarn": "^0.13.0"
-  },
-
-  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"]
+  "bugs": "https://github.com/lucajoos/onceupon.js/issues"
 }
