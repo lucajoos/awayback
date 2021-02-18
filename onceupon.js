@@ -47,7 +47,7 @@ module.exports = object => {
                                     if((c.type === 0 && c.fired === 0) || c.type === 1 || (c.type === 2 && c.fired === 0 && r.events[event].did === 0)) {
                                         c.fired++;
                                         r.events[event].did = r.events[event].did + 1;
-                                        c.do(r.events[event].data[i] || null, event);
+                                        c.do(r.events[event].data[c.fired - 1] || null, event);
                                     } else {
                                         exit = true;
                                     }
