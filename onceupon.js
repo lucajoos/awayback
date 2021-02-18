@@ -22,6 +22,8 @@ module.exports = object => {
                 r.events[event].data.push(data);
             }
 
+            r.events[event].fired++;
+
             r.events[event].callbacks.forEach(c => {
                 if((c.type === 0 && c.fired === 0) || c.type === 1 || (c.type === 2 && c.fired === 0 && r.events[event].did === 0)) {
                     c.fired++;
@@ -29,8 +31,6 @@ module.exports = object => {
                     c.do(typeof data !== 'undefined' ? data : null, event);
                 }
             });
-
-            r.events[event].fired++;
         },
 
         create: event => {
@@ -40,7 +40,7 @@ module.exports = object => {
                         target[key] = value;
 
                         if(r.events[event].fired > 0) {
-                            r.events[event].callbacks.forEach((c, i) => {
+                            r.events[event].callbacks.forEach(c => {
                                 let exit = false;
 
                                 while(c.fired !== r.events[event].fired && !exit && !c.last) {
