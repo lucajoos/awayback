@@ -10,27 +10,29 @@ module.exports = object => {
         events: {},
 
         fire: (event, ...data) => {
-            if(r.events[event] === undefined) {
-                r.create(event);
-            }
-
-            if(typeof data !== 'undefined') {
-                if(data.length === 1) {
-                    data = data[0];
+            event.split('|').forEach(ce => {
+                if(r.events[ce] === undefined) {
+                    r.create(ce);
                 }
-
-                r.events[event].data.push(data);
-            }
-
-            r.events[event].fired++;
-
-            r.events[event].callbacks.forEach(c => {
-                if((c.type === 0 && c.fired === 0) || c.type === 1 || (c.type === 2 && c.fired === 0 && r.events[event].did === 0)) {
-                    c.fired++;
-                    r.events[event].did = r.events[event].did + 1;
-                    c.do(typeof data !== 'undefined' ? data : null, event);
+    
+                if(typeof data !== 'undefined') {
+                    if(data.length === 1) {
+                        data = data[0];
+                    }
+    
+                    r.events[ce].data.push(data);
                 }
-            });
+    
+                r.events[ce].fired++;
+    
+                r.events[ce].callbacks.forEach(c => {
+                    if((c.type === 0 && c.fired === 0) || c.type === 1 || (c.type === 2 && c.fired === 0 && r.events[ce].did === 0)) {
+                        c.fired++;
+                        r.events[ce].did = r.events[ce].did + 1;
+                        c.do(typeof data !== 'undefined' ? data : null, ce);
+                    }
+                });
+            })
         },
 
         create: event => {
