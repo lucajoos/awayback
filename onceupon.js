@@ -48,7 +48,7 @@ module.exports = object => {
                                 r.events[event].callbacks.forEach(c => {
                                     let exit = false;
     
-                                    while(c.fired !== r.events[event].fired && !exit && !c.last) {
+                                    while(c.fired !== r.events[event].fired && !exit && !c.ignorePreviousCalls) {
                                         if((c.type === 0 && c.fired === 0) || c.type === 1 || (c.type === 2 && c.fired === 0 && r.events[event].did === 0)) {
                                             c.fired++;
                                             r.events[event].did = r.events[event].did + 1;
@@ -71,7 +71,7 @@ module.exports = object => {
             }
         },
 
-        once: (event, callback, last) => {
+        once: (event, callback, ignorePreviousCalls) => {
             if(typeof event === 'string' && typeof callback === 'function') {
                 event.split('|').forEach(ce => {
                     ce = ce.trim();
@@ -85,14 +85,14 @@ module.exports = object => {
                             do: callback,
                             type: 0,
                             fired: 0,
-                            last: typeof last === 'boolean' ? last : false
+                            ignorePreviousCalls: typeof ignorePreviousCalls === 'boolean' ? ignorePreviousCalls : false
                         }
                     )
                 });
             }
         },
 
-        on: (event, callback, last) => {
+        on: (event, callback, ignorePreviousCalls) => {
             if(typeof event === 'string' && typeof callback === 'function') {
                 event.split('|').forEach(ce => {
                     ce = ce.trim();
@@ -106,14 +106,14 @@ module.exports = object => {
                             do: callback,
                             type: 1,
                             fired: 0,
-                            last: typeof last === 'boolean' ? last : false
+                            ignorePreviousCalls: typeof ignorePreviousCalls === 'boolean' ? ignorePreviousCalls : false
                         }
                     )
                 });
             }
         },
 
-        only: (event, callback, last) => {
+        only: (event, callback, ignorePreviousCalls) => {
             if(typeof event === 'string' && typeof callback === 'function') {
                 event.split('|').forEach(ce => {
                     ce = ce.trim();
@@ -128,7 +128,7 @@ module.exports = object => {
                                 do: callback,
                                 type: 2,
                                 fired: 0,
-                                last: typeof last === 'boolean' ? last : false
+                                ignorePreviousCalls: typeof ignorePreviousCalls === 'boolean' ? ignorePreviousCalls : false
                             }
                         )
                     }

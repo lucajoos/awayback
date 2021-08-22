@@ -62,13 +62,13 @@ Optionally, an event with any name can be created.
 onceupon.create('name');
 ```
 
-### .on(event, callback, last)
+### .on(event, callback, ignorePreviousCalls)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-- `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- `ignorePreviousCalls` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 
 The callback is executed each time the event is fired.
@@ -82,7 +82,7 @@ onceupon.on('name', (data) => {
 });
 ```
 
-If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `ignorePreviousCalls` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .on()
@@ -111,13 +111,13 @@ onceupon.on('first|second', () => {
 });
 ```
 
-### .once(event, callback, last)
+### .once(event, callback, ignorePreviousCalls)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-- `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- `ignorePreviousCalls` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is only executed once when the event is called first.
 There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
@@ -134,7 +134,7 @@ onceupon.fire('event', 'one');
 onceupon.fire('event', 'two');
 ```
 
-If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `ignorePreviousCalls` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .once()
@@ -162,13 +162,13 @@ onceupon.once('first|second', () => {
 });
 ```
 
-### .only(event, callback, last)
+### .only(event, callback, ignorePreviousCalls)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-- `last` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- `ignorePreviousCalls` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is only executed if this callback is the first and only one to be called.
 There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
@@ -193,7 +193,7 @@ onceupon.only('event', (data) => {
 onceupon.fire('event', 'data');
 ```
 
-If the argument `last` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `ignorePreviousCalls` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .only()
