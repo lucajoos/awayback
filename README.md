@@ -233,6 +233,14 @@ The first required argument is the name of the event, the second, optional one, 
 onceupon.fire('name', 'data');
 ```
 
+#### Multiple events
+It is also possible to fire multiple events with one call. For this purpose, the events names can be separated by a `|`.
+
+```javascript
+// Fire the events 'first' and 'second' with the same call
+onceupon.fire('first|second', 'data');
+```
+
 #### Multiple arguments
 If there are more than two arguments, `data` is an array.
 
