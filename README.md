@@ -1,4 +1,4 @@
-# onceupon.js v1.5.10
+# onceupon.js v1.5.11
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
