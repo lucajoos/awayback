@@ -18,7 +18,7 @@ onceupon.fire('event', 'data');
 ```
 
 ## Installation
-Install using [NPM](https://npmjs.org):
+Install using [NPM](https://npmjs.org) (or yarn):
 
 ```
 $ npm i -g npm
