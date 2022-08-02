@@ -1,6 +1,6 @@
 {
   "name": "onceupon.js",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "Custom event system for JavaScript.",
   "repository": "https://github.com/lucajoos/onceupon.js",
   "exports": {
@@ -10,7 +10,7 @@
       "require": "./cjs/onceupon.js"
     }
   },
-  "main": "./cjs/onceupon.js",
+  "main": "./esm/onceupon.js",
   "types": "./types/onceupon.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json && tsc --project ./tsconfig.cjs.json",
@@ -22,7 +22,7 @@
   ],
   "author": {
     "name": "Luca Joos",
-    "email": "1a85ra7z@gmail.com"
+    "email": "me@lucajoos.de"
   },
   "license": "MIT",
   "devDependencies": {
