@@ -133,4 +133,4 @@ const onceupon = (object?: any): Response => {
   return typeof object === 'object' ? Object.assign(object, response) : response
 }
 
-export { onceupon }
+export default onceupon

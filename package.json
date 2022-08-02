@@ -6,11 +6,12 @@
   "exports": {
     ".": {
       "types": "./types/onceupon.d.ts",
-      "import": "./esm/onceupon.js",
-      "require": "./cjs/onceupon.js"
+      "import": "./lib/esm/onceupon.js",
+      "require": "./lib/cjs/onceupon.js"
     }
   },
-  "main": "./esm/onceupon.js",
+  "main": "./lib/cjs/onceupon.js",
+  "module": "./lib/esm/onceupon.js",
   "types": "./types/onceupon.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json && tsc --project ./tsconfig.cjs.json",
