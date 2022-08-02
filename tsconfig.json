@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "rootDir": "./",
+
+    "target": "ES6",
+    "module": "ESNext",
+
+    "types": ["node"],
+
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": true,
+
+    "outDir": "./lib/esm"
+  },
+
+  "include": ["onceupon.ts"],
+  "exclude": ["node_modules", "lib"]
+}
