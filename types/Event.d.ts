@@ -1,10 +1,10 @@
 import Callback from './Callback';
 
-interface Event {
+interface CustomEvent {
   callbacks: Callback[]
   fired: number
   did: number
   data: any[]
 }
 
-export default Event
+export default CustomEvent

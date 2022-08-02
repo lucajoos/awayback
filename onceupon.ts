@@ -9,14 +9,14 @@ import ListenerOptions from './types/ListenerOptions'
 import Response from './types/Response'
 import Callback from './types/Callback'
 
-const onceupon = (object: any): Response => {
-  const response: any = {
+const onceupon = (object?: any): Response => {
+  const response: Response = {
     events: {},
 
     fire: (event: string, ...data: any) => {
-      event.split('|').forEach(currentEvent => {
-        if (response.events[currentEvent] === undefined) {
-          response.create(currentEvent)
+      event.split('|').forEach(current => {
+        if (response.events[current] === undefined) {
+          response.create(current)
         }
 
         if (typeof data !== 'undefined') {
@@ -24,16 +24,16 @@ const onceupon = (object: any): Response => {
             data = data[0]
           }
 
-          response.events[currentEvent].data.push(data)
+          response.events[current].data.push(data)
         }
 
-        response.events[currentEvent].fired++
+        response.events[current].fired++;
 
-        response.events[currentEvent].callbacks.forEach((callback: Callback) => {
-          if ((callback.type === 0 && callback.fired === 0) || callback.type === 1 || (callback.type === 2 && callback.fired === 0 && response.events[currentEvent].did === 0)) {
+        response.events[current].callbacks.forEach((callback: Callback) => {
+          if ((callback.type === 0 && callback.fired === 0) || callback.type === 1 || (callback.type === 2 && callback.fired === 0 && response.events[current].did === 0)) {
             callback.fired++
-            response.events[currentEvent].did = response.events[currentEvent].did + 1
-            callback.do(typeof data !== 'undefined' ? data : null, currentEvent)
+            response.events[current].did = response.events[current].did + 1
+            callback.do(typeof data !== 'undefined' ? data : null, current)
           }
         })
       })
@@ -41,10 +41,10 @@ const onceupon = (object: any): Response => {
 
     create: (event: string) => {
       response.events[event] = {
-        callbacks: new Proxy([], {
-          set: (target, key, value) => {
-            // @ts-expect-error
-            target[key] = value
+        callbacks: new Proxy([] as Callback[], {
+          set: (target, property, value) => {
+            // @ts-ignore
+            target[property] = value
 
             if (response.events[event].fired > 0) {
               response.events[event].callbacks.forEach((callback: Callback) => {
@@ -72,7 +72,7 @@ const onceupon = (object: any): Response => {
       }
     },
 
-    once: (event: string, callback: ListenerCallback, options: ListenerOptions) => {
+    once: (event: string, callback: ListenerCallback, options?: ListenerOptions) => {
       event.split('|').forEach(currentEvent => {
         currentEvent = currentEvent.trim()
 
@@ -84,12 +84,12 @@ const onceupon = (object: any): Response => {
           do: callback,
           type: 0,
           fired: 0,
-          options
+          options: options || {}
         })
       })
     },
 
-    on: (event: string, callback: ListenerCallback, options: ListenerOptions) => {
+    on: (event: string, callback: ListenerCallback, options?: ListenerOptions) => {
       event.split('|').forEach(currentEvent => {
         currentEvent = currentEvent.trim()
 
@@ -101,12 +101,12 @@ const onceupon = (object: any): Response => {
           do: callback,
           type: 1,
           fired: 0,
-          options
+          options: options || {}
         })
       })
     },
 
-    only: (event: string, callback: ListenerCallback, options: ListenerOptions) => {
+    only: (event: string, callback: ListenerCallback, options?: ListenerOptions) => {
       event.split('|').forEach(currentEvent => {
         currentEvent = currentEvent.trim()
 
@@ -119,13 +119,13 @@ const onceupon = (object: any): Response => {
             do: callback,
             type: 2,
             fired: 0,
-            options
+            options: options || {}
           })
         }
       })
     },
 
-    isFired: (event: string) => {
+    isFired: (event: string): boolean => {
       return event?.length > 0 ? (typeof response.events[event] === 'object' ? response.events[event].fired > 0 : false) : false
     }
   }
