@@ -1,20 +1,20 @@
-# onceupon v2.0.0
+# awayback v2.0.1
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
-[![npm](https://img.shields.io/npm/v/onceupon.js)](https://www.npmjs.com/package/onceupon.js)
-[![npm](https://img.shields.io/github/last-commit/lucajoos/onceupon.js)](https://www.npmjs.com/package/onceupon.js)
-[![npm](https://img.shields.io/npm/dm/onceupon.js)](https://www.npmjs.com/package/onceupon.js)
+[![npm](https://img.shields.io/npm/v/awayback)](https://www.npmjs.com/package/awayback)
+[![npm](https://img.shields.io/github/last-commit/lucajoos/awayback)](https://www.npmjs.com/package/awayback)
+[![npm](https://img.shields.io/npm/dm/awayback)](https://www.npmjs.com/package/awayback)
 
 ```javascript
-let onceupon = require('onceupon.js')();
+let awayback = require('awayback')();
 
-onceupon.on('event', (data) => {
+awayback.on('event', (data) => {
     console.log(data);
     // data
 });
 
-onceupon.fire('event', 'data');
+awayback.fire('event', 'data');
 ```
 
 ## Installation
@@ -22,34 +22,34 @@ Install using [NPM](https://npmjs.org) (or yarn):
 
 ```
 $ npm i -g npm
-$ npm i --save onceupon.js
+$ npm i --save awayback
 ```
 
 In Node.js:
 
 ```javascript
-// Require onceupon & create a new instance
-let onceupon = require('onceupon.js')();
+// Require awayback & create a new instance
+let awayback = require('awayback')();
 ```
 
 ## API
-### onceupon(object)
+### awayback(object)
 
 - `object` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
-Require `onceupon` & create a new instance.
+Require `awayback` & create a new instance.
 
 ```javascript
-let onceupon = require('onceupon.js')();
+let awayback = require('awayback')();
 ```
 
-Assign `onceupon` object to an existing one.
+Assign `awayback` object to an existing one.
 
 ```javascript
 let data = {};
 
-let onceupon = require('onceupon.js')(data);
-// Merge onceupon & data object
+let awayback = require('awayback')(data);
+// Merge awayback & data object
 ```
 
 ### .create(event)
@@ -59,7 +59,7 @@ let onceupon = require('onceupon.js')(data);
 Optionally, an event with any name can be created.
 
 ```javascript
-onceupon.create('name');
+awayback.create('name');
 ```
 
 ### .on(event, callback, options)
@@ -76,7 +76,7 @@ The callback is executed each time the event is fired.
 There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
-onceupon.on('name', (data) => {
+awayback.on('name', (data) => {
     // Event is fired, callback executed
     // Use transmitted data
     console.log(data);
@@ -88,17 +88,17 @@ If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener
 ```javascript
 // Fire event before the initialization of .on()
 // This event call is not executed
-onceupon.fire('event', 'before');
+awayback.fire('event', 'before');
 
 setTimeout(() => {
-    onceupon.on('event', data => {
+    awayback.on('event', data => {
         console.log(data);
         // OUTPUT: after
         // OUTPUT: another call
     }, true);
 
-    onceupon.fire('event', 'after');
-    onceupon.fire('event', 'another call');
+    awayback.fire('event', 'after');
+    awayback.fire('event', 'another call');
 }, 1000);
 ```
 
@@ -107,7 +107,7 @@ It is also possible to use a callback for several events. For this purpose, the 
 
 ```javascript
 // Listen to the events 'first' and 'second'
-onceupon.on('first|second', () => {
+awayback.on('first|second', () => {
     // Event 'first' or 'second' is fired, callback executed
 });
 ```
@@ -125,15 +125,15 @@ The callback is only executed once when the event is called first.
 There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
-onceupon.once('event', (data) => {
+awayback.once('event', (data) => {
     // Event is fired, callback executed
     // Use transmitted data
     console.log(data);
     // one
 });
 
-onceupon.fire('event', 'one');
-onceupon.fire('event', 'two');
+awayback.fire('event', 'one');
+awayback.fire('event', 'two');
 ```
 
 If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
@@ -141,16 +141,16 @@ If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener
 ```javascript
 // Fire event before the initialization of .once()
 // This event call is not executed
-onceupon.fire('event', 'before');
+awayback.fire('event', 'before');
 
 // Set a timeout
 setTimeout(() => {
-    onceupon.once('event', data => {
+    awayback.once('event', data => {
         console.log(data);
         // OUTPUT: after
     }, true);
 
-    onceupon.fire('event', 'after');
+    awayback.fire('event', 'after');
 }, 1000);
 ```
 
@@ -159,7 +159,7 @@ It is also possible to use a callback for several events. For this purpose, the 
 
 ```javascript
 // Listen to the events 'first' and 'second'
-onceupon.once('first|second', () => {
+awayback.once('first|second', () => {
     // Event 'first' or 'second' is fired, callback executed
 });
 ```
@@ -177,7 +177,7 @@ The callback is only executed if this callback is the first and only one to be c
 There is a possible argument for the data from the `fire` function. If there are several arguments at the event call, `data` is an array.
 
 ```javascript
-onceupon.only('name', (data) => {
+awayback.only('name', (data) => {
     // Event is fired, callback executed
     // Use transmitted data
     console.log(data);
@@ -185,15 +185,15 @@ onceupon.only('name', (data) => {
 ```
 
 ```javascript
-onceupon.on('event', () => {});
+awayback.on('event', () => {});
 
-onceupon.only('event', (data) => {
+awayback.only('event', (data) => {
     // Event is fired, callback is not executed
     // because it's not the only event listener
     console.log(data);
 });
 
-onceupon.fire('event', 'data');
+awayback.fire('event', 'data');
 ```
 
 If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
@@ -201,16 +201,16 @@ If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener
 ```javascript
 // Fire event before the initialization of .only()
 // This event call is not executed
-onceupon.fire('event', 'before');
+awayback.fire('event', 'before');
 
 // Set a timeout
 setTimeout(() => {
-    onceupon.only('event', data => {
+    awayback.only('event', data => {
         console.log(data);
         // OUTPUT: after
     }, true);
 
-    onceupon.fire('event', 'after');
+    awayback.fire('event', 'after');
 }, 1000);
 ```
 
@@ -219,7 +219,7 @@ It is also possible to use a callback for several events. For this purpose, the 
 
 ```javascript
 // Listen to the events 'first' and 'second'
-onceupon.only('first|second', () => {
+awayback.only('first|second', () => {
     // Event 'first' or 'second' is fired, callback executed
 });
 ```
@@ -233,7 +233,7 @@ Events can be fired using the function `fire`.
 The first required argument is the name of the event, the second, optional one, is data that can be transmitted.
 
 ```javascript
-onceupon.fire('name', 'data');
+awayback.fire('name', 'data');
 ```
 
 #### Multiple events
@@ -241,7 +241,7 @@ It is also possible to fire multiple events with one call. For this purpose, the
 
 ```javascript
 // Fire the events 'first' and 'second' with the same call
-onceupon.fire('first|second', 'data');
+awayback.fire('first|second', 'data');
 ```
 
 #### Multiple arguments
@@ -249,12 +249,12 @@ If there are more than two arguments, `data` is an array.
 
 ```javascript
 // Listen to the events 'first' and 'second'
-onceupon.on('event', data => {
+awayback.on('event', data => {
     console.log(data);
     // OUTPUT: ['some', 'data']
 });
 
-onceupon.fire('event', 'some', 'data');
+awayback.fire('event', 'some', 'data');
 ```
 
 ### .isFired(event)
@@ -267,10 +267,10 @@ Returns if a given `event` was fired.
 
 ```javascript
 // Fire an event
-onceupon.fire('event');
+awayback.fire('event');
 
 // Check if event was fired
-onceupon.isFired('event')
+awayback.isFired('event')
 // true
 ```
 

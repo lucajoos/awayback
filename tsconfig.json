@@ -15,6 +15,6 @@
     "outDir": "./lib/esm"
   },
 
-  "include": ["onceupon.ts"],
+  "include": ["awayback.ts"],
   "exclude": ["node_modules", "lib"]
 }

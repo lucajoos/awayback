@@ -1,24 +1,24 @@
 {
-  "name": "onceupon",
-  "version": "2.0.0",
+  "name": "awayback",
+  "version": "2.0.1",
   "description": "Custom event system for JavaScript.",
-  "repository": "https://github.com/lucajoos/onceupon.js",
+  "repository": "https://github.com/lucajoos/awayback",
   "exports": {
     ".": {
-      "types": "./types/onceupon.d.ts",
-      "import": "./lib/esm/onceupon.js",
-      "require": "./lib/cjs/onceupon.js"
+      "types": "./types/awayback.d.ts",
+      "import": "./lib/esm/awayback",
+      "require": "./lib/cjs/awayback"
     }
   },
-  "main": "./lib/cjs/onceupon.js",
-  "module": "./lib/esm/onceupon.js",
-  "types": "./types/onceupon.d.ts",
+  "main": "./lib/cjs/awayback",
+  "module": "./lib/esm/awayback",
+  "types": "./types/awayback.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json && tsc --project ./tsconfig.cjs.json",
     "watch": "(tsc --project tsconfig.json --watch &) && tsc --project ./tsconfig.cjs.json --watch"
   },
   "keywords": [
-    "onceupon.js",
+    "awayback",
     "events"
   ],
   "author": {
@@ -31,5 +31,5 @@
     "tsc-watch": "^5.0.3",
     "typescript": "^4.7.4"
   },
-  "bugs": "https://github.com/lucajoos/onceupon.js/issues"
+  "bugs": "https://github.com/lucajoos/awayback/issues"
 }

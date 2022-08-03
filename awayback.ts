@@ -1,6 +1,6 @@
 /**
  * @license
- * onceupon.js
+ * awayback
  * Released under MIT license
  * Copyright Luca Joos
  */
@@ -9,7 +9,7 @@ import ListenerOptions from './types/ListenerOptions'
 import Response from './types/Response'
 import Callback from './types/Callback'
 
-const onceupon = (object?: any): Response => {
+const awayback = (object?: any): Response => {
   const response: Response = {
     events: {},
 
@@ -133,4 +133,4 @@ const onceupon = (object?: any): Response => {
   return typeof object === 'object' ? Object.assign(object, response) : response
 }
 
-export default onceupon
+export default awayback
