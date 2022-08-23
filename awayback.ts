@@ -47,12 +47,12 @@ const awayback = (object?: any): Response => {
             target[property] = value
 
             if (response.events[event].fired > 0) {
-              response.events[event].callbacks.forEach((callback: Callback) => {
+              response.events[event].callbacks.forEach((callback: Callback, index) => {
                 let exit = false
 
-                while (callback.fired !== response.events[event].fired && !exit && !callback.options.isIgnoringPrevious) {
+                while (callback.fired < response.events[event].fired && !exit && !callback.options.isIgnoringPrevious) {
                   if ((callback.type === 0 && callback.fired === 0) || callback.type === 1 || (callback.type === 2 && callback.fired === 0 && response.events[event].did === 0)) {
-                    callback.fired++
+                    response.events[event].callbacks[index].fired++
                     response.events[event].did = response.events[event].did + 1
                     callback.do(response.events[event].data[callback.fired - 1] || null, event)
                   } else {
