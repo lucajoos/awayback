@@ -83,19 +83,22 @@ awayback.on('name', (data) => {
 });
 ```
 
-If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .on()
-// This event call is not executed
+// This event call will also be executed
 awayback.fire('event', 'before');
 
 setTimeout(() => {
     awayback.on('event', data => {
         console.log(data);
+        // OUTPUT: before
         // OUTPUT: after
         // OUTPUT: another call
-    }, true);
+    }, {
+      isExecutingPrevious: true
+    });
 
     awayback.fire('event', 'after');
     awayback.fire('event', 'another call');
@@ -136,21 +139,20 @@ awayback.fire('event', 'one');
 awayback.fire('event', 'two');
 ```
 
-If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .once()
-// This event call is not executed
+// This event call will also be executed
 awayback.fire('event', 'before');
 
-// Set a timeout
 setTimeout(() => {
-    awayback.once('event', data => {
-        console.log(data);
-        // OUTPUT: after
-    }, true);
-
-    awayback.fire('event', 'after');
+  awayback.once('event', data => {
+    console.log(data);
+    // OUTPUT: before
+  }, {
+    isExecutingPrevious: true
+  });
 }, 1000);
 ```
 
@@ -196,21 +198,20 @@ awayback.only('event', (data) => {
 awayback.fire('event', 'data');
 ```
 
-If the argument `isIgnoringPrevious` in `options` is set to `true`, the listener does not execute event calls from before the initialization of the listener.
+If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
 
 ```javascript
 // Fire event before the initialization of .only()
-// This event call is not executed
+// This event call will also be executed
 awayback.fire('event', 'before');
 
-// Set a timeout
 setTimeout(() => {
-    awayback.only('event', data => {
-        console.log(data);
-        // OUTPUT: after
-    }, true);
-
-    awayback.fire('event', 'after');
+  awayback.only('event', data => {
+    console.log(data);
+    // OUTPUT: before
+  }, {
+    isExecutingPrevious: true
+  });
 }, 1000);
 ```
 

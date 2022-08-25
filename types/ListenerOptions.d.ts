@@ -1,5 +1,5 @@
 interface ListenerOptions {
-  isIgnoringPrevious?: boolean
+  isExecutingPrevious?: boolean
 }
 
 export default ListenerOptions

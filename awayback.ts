@@ -43,14 +43,17 @@ const awayback = (object?: any): Response => {
       response.events[event] = {
         callbacks: new Proxy([] as Callback[], {
           set: (target, property, value) => {
-            // @ts-ignore
-            target[property] = value
+            (target as any)[property] = value
 
             if (response.events[event].fired > 0) {
               response.events[event].callbacks.forEach((callback: Callback, index) => {
+                let options: ListenerOptions = Object.assign({
+                  isExecutingPrevious: false
+                }, callback.options)
+                
                 let exit = false
 
-                while (callback.fired < response.events[event].fired && !exit && !callback.options.isIgnoringPrevious) {
+                while (callback.fired < response.events[event].fired && !exit && options.isExecutingPrevious) {
                   if ((callback.type === 0 && callback.fired === 0) || callback.type === 1 || (callback.type === 2 && callback.fired === 0 && response.events[event].did === 0)) {
                     response.events[event].callbacks[index].fired++
                     response.events[event].did = response.events[event].did + 1
