@@ -1,4 +1,4 @@
-# awayback v2.0.2
+# awayback v2.1.0
 
 Custom event system for JavaScript exported as [Node.js](https://nodejs.org) module.
 
