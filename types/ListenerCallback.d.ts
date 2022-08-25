@@ -1,3 +1,3 @@
-type ListenerCallback = (data?: any[], event?: string) => void
+type ListenerCallback = (data?: any, event?: string) => void
 
 export default ListenerCallback
