@@ -11,6 +11,7 @@
     "lint": "eslint",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json|mjs)\""
   },
+  "type": "module",
   "keywords": [
     "awayback",
     "events"
