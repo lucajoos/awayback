@@ -43,32 +43,32 @@ function awayback<D extends Definition>() {
       }),
 
       runs: 0,
-      data: [] as D[E][],
+      data: [] as Parameters<D[E]>[],
     }
   }
 
-  function emit<E extends keyof D>(event: E, ...data: D[E]) {
+  function emit<E extends keyof D>(event: E, ...data: Parameters<D[E]>) {
     if (typeof events[event] === 'undefined') create(event)
 
-    const container = events[event]
-    if (!container) return
+    const self = events[event]
+    if (!self) return
 
     if (typeof data !== 'undefined') {
-      container.data.push(data)
+      self.data.push(data)
     }
 
-    container.runs++
+    self.runs++
 
-    container.callbacks.forEach((callback) => {
+    self.callbacks.forEach((callback) => {
       if (
         callback.type === CallbackType.on ||
         (callback.type === CallbackType.once && callback.runs === 0) ||
         (callback.type === CallbackType.only &&
           callback.runs === 0 &&
-          container.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
+          self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
       ) {
         callback.runs++
-        callback.handler(...container.data[callback.runs - 1])
+        callback.handler(...self.data[callback.runs - 1])
       }
     })
   }
