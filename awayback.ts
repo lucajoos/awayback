@@ -1,139 +1,126 @@
+import { Callback, CallbackType, Definition, Events, CallbackOptions, CallbackHandler } from './awayback.model'
+import { merge } from 'lodash'
+
 /**
  * @license
  * awayback
  * Released under MIT license
- * Copyright Luca Joos
+ * Copyright Luca Raúl Joos
  */
-import ListenerCallback from './types/ListenerCallback'
-import ListenerOptions from './types/ListenerOptions'
-import Response from './types/Response'
-import Callback from './types/Callback'
+function awayback<D extends Definition>() {
+  const events = {} as Events<D>
 
-const awayback = (object?: any): Response => {
-  const response: Response = {
-    events: {},
+  function create<E extends keyof D>(event: E) {
+    events[event] = {
+      callbacks: new Proxy<Callback<D, keyof D>[]>([], {
+        set: (target, property, value, receiver) => {
+          const self = events[event]
+          if (!self) return false
 
-    fire: (event: string, ...data: any) => {
-      event.split('|').forEach(current => {
-        if (response.events[current] === undefined) {
-          response.create(current)
-        }
+          if (self.runs > 0) {
+            self.callbacks.forEach((callback) => {
+              let isExiting = false
 
-        if (typeof data !== 'undefined') {
-          if (data.length === 1) {
-            data = data[0]
-          }
-
-          response.events[current].data.push(data)
-        }
-
-        response.events[current].fired++;
-
-        response.events[current].callbacks.forEach((callback: Callback) => {
-          if ((callback.type === 0 && callback.fired === 0) || callback.type === 1 || (callback.type === 2 && callback.fired === 0 && response.events[current].did === 0)) {
-            callback.fired++
-            response.events[current].did = response.events[current].did + 1
-            callback.do(typeof data !== 'undefined' ? data : null, current)
-          }
-        })
-      })
-    },
-
-    create: (event: string) => {
-      response.events[event] = {
-        callbacks: new Proxy([] as Callback[], {
-          set: (target, property, value) => {
-            (target as any)[property] = value
-
-            if (response.events[event].fired > 0) {
-              response.events[event].callbacks.forEach((callback: Callback, index) => {
-                let options: ListenerOptions = Object.assign({
-                  isExecutingPrevious: false
-                }, callback.options)
-                
-                let exit = false
-
-                while (callback.fired < response.events[event].fired && !exit && options.isExecutingPrevious) {
-                  if ((callback.type === 0 && callback.fired === 0) || callback.type === 1 || (callback.type === 2 && callback.fired === 0 && response.events[event].did === 0)) {
-                    response.events[event].callbacks[index].fired++
-                    response.events[event].did = response.events[event].did + 1
-                    callback.do(response.events[event].data[callback.fired - 1] || null, event)
-                  } else {
-                    exit = true
-                  }
+              while (callback.runs < self.runs && !isExiting && callback.options.isExecutingPrevious) {
+                if (
+                  callback.type === CallbackType.on ||
+                  (callback.type === CallbackType.once && callback.runs === 0) ||
+                  (callback.type === CallbackType.only &&
+                    callback.runs === 0 &&
+                    self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
+                ) {
+                  callback.runs++
+                  callback.handler(...self.data[callback.runs - 1])
+                } else {
+                  isExiting = true
                 }
-              })
-            }
-
-            return true
+              }
+            })
           }
-        }),
 
-        fired: 0,
-        did: 0,
-        data: []
-      }
-    },
+          return Reflect.set(target, property, value, receiver)
+        },
+      }),
 
-    once: (event: string, callback: ListenerCallback, options?: ListenerOptions) => {
-      event.split('|').forEach(currentEvent => {
-        currentEvent = currentEvent.trim()
-
-        if (response.events[currentEvent] === undefined) {
-          response.create(currentEvent)
-        }
-
-        response.events[currentEvent].callbacks.push({
-          do: callback,
-          type: 0,
-          fired: 0,
-          options: options || {}
-        })
-      })
-    },
-
-    on: (event: string, callback: ListenerCallback, options?: ListenerOptions) => {
-      event.split('|').forEach(currentEvent => {
-        currentEvent = currentEvent.trim()
-
-        if (response.events[currentEvent] === undefined) {
-          response.create(currentEvent)
-        }
-
-        response.events[currentEvent].callbacks.push({
-          do: callback,
-          type: 1,
-          fired: 0,
-          options: options || {}
-        })
-      })
-    },
-
-    only: (event: string, callback: ListenerCallback, options?: ListenerOptions) => {
-      event.split('|').forEach(currentEvent => {
-        currentEvent = currentEvent.trim()
-
-        if (response.events[currentEvent] === undefined) {
-          response.create(currentEvent)
-        }
-
-        if (response.events[currentEvent].callbacks.length === 0) {
-          response.events[currentEvent].callbacks.push({
-            do: callback,
-            type: 2,
-            fired: 0,
-            options: options || {}
-          })
-        }
-      })
-    },
-
-    isFired: (event: string): boolean => {
-      return event?.length > 0 ? (typeof response.events[event] === 'object' ? response.events[event].fired > 0 : false) : false
+      runs: 0,
+      data: [] as D[E][],
     }
   }
 
-  return typeof object === 'object' ? Object.assign(object, response) : response
+  function emit<E extends keyof D>(event: E, ...data: D[E]) {
+    if (typeof events[event] === 'undefined') create(event)
+
+    const container = events[event]
+    if (!container) return
+
+    if (typeof data !== 'undefined') {
+      container.data.push(data)
+    }
+
+    container.runs++
+
+    container.callbacks.forEach((callback) => {
+      if (
+        callback.type === CallbackType.on ||
+        (callback.type === CallbackType.once && callback.runs === 0) ||
+        (callback.type === CallbackType.only &&
+          callback.runs === 0 &&
+          container.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
+      ) {
+        callback.runs++
+        callback.handler(...container.data[callback.runs - 1])
+      }
+    })
+  }
+
+  function listen<E extends keyof D>(
+    type: CallbackType,
+    event: E,
+    handler: CallbackHandler<D, E>,
+    options?: CallbackOptions
+  ) {
+    if (typeof events[event] === 'undefined') create(event)
+
+    const self = events[event]
+    if (!self) return
+
+    self.callbacks.push({
+      handler: handler as CallbackHandler<D, keyof D>,
+      type,
+      runs: 0,
+      options: merge({ isExecutingPrevious: false }, options ?? {}),
+    })
+  }
+
+  function on<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
+    listen(CallbackType.on, event, handler, options)
+  }
+
+  function once<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
+    listen(CallbackType.once, event, handler, options)
+  }
+
+  function only<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
+    listen(CallbackType.only, event, handler, options)
+  }
+
+  function remove<E extends keyof D>(event: E, handler: CallbackHandler<D, E>) {
+    if (typeof events[event] === 'undefined') return
+
+    const self = events[event]
+    if (!self) return
+
+    self.callbacks = self.callbacks.filter((callback) => callback.handler !== handler)
+  }
+
+  return {
+    events,
+    emit,
+    on,
+    once,
+    only,
+    remove,
+  }
 }
 
 export default awayback
