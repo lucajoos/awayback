@@ -2,9 +2,9 @@
 export type Definition = { [key: string]: (...parameters: any[]) => void }
 
 export enum CallbackType {
-  on = 0,
-  once = 1,
-  only = 2,
+  on = 'on',
+  once = 'once',
+  only = 'only',
 }
 
 export type CallbackOptions = {
