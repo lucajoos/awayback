@@ -1,4 +1,4 @@
-# awayback v3.2.1
+# awayback v3.2.2
 
 A custom event system.
 
@@ -45,6 +45,7 @@ Require `awayback` & create a new instance.
 import awayback from 'awayback'
 const events = awayback()
 ```
+
 ### .on(event, callback, options)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -215,6 +216,7 @@ events.emit('event', 'some', 'data')
 ```
 
 ### .remove(event, callback)
+
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
   - `...data` &lt;Any&gt;

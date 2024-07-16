@@ -19,9 +19,11 @@ function awayback<D extends Definition>() {
 
           if (self.runs > 0) {
             self.callbacks.forEach((callback) => {
+              if (!(callback.options.isExecutingPrevious ?? false)) return
+
               let isExiting = false
 
-              while (callback.runs < self.runs && !isExiting && callback.options.isExecutingPrevious) {
+              while (callback.runs < self.runs && !isExiting) {
                 if (
                   callback.type === CallbackType.on ||
                   (callback.type === CallbackType.once && callback.runs === 0) ||
@@ -29,8 +31,8 @@ function awayback<D extends Definition>() {
                     callback.runs === 0 &&
                     self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
                 ) {
+                  callback.handler(...self.data[callback.runs])
                   callback.runs++
-                  callback.handler(...self.data[callback.runs - 1])
                 } else {
                   isExiting = true
                 }
@@ -67,8 +69,8 @@ function awayback<D extends Definition>() {
           callback.runs === 0 &&
           self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
       ) {
+        callback.handler(...data)
         callback.runs++
-        callback.handler(...self.data[callback.runs - 1])
       }
     })
   }
