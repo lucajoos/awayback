@@ -1,6 +1,6 @@
 {
   "name": "awayback",
-  "version": "3.0.1",
+  "version": "2.1.1",
   "description": "A custom event system.",
   "repository": "https://github.com/lucajoos/awayback",
   "main": "dist/awayback.js",
