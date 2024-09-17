@@ -12,40 +12,9 @@ function awayback<D extends Definition>() {
 
   function create<E extends keyof D>(event: E) {
     events[event] = {
-      callbacks: new Proxy<Callback<D, keyof D>[]>([], {
-        set: (target, property, value, receiver) => {
-          const self = events[event]
-          if (!self) return false
-
-          if (self.runs > 0) {
-            self.callbacks.forEach((callback) => {
-              if (!(callback.options.isExecutingPrevious ?? false)) return
-
-              let isExiting = false
-
-              while (callback.runs < self.runs && !isExiting) {
-                if (
-                  callback.type === CallbackType.on ||
-                  (callback.type === CallbackType.once && callback.runs === 0) ||
-                  (callback.type === CallbackType.only &&
-                    callback.runs === 0 &&
-                    self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
-                ) {
-                  callback.handler(...self.data[callback.runs])
-                  callback.runs++
-                } else {
-                  isExiting = true
-                }
-              }
-            })
-          }
-
-          return Reflect.set(target, property, value, receiver)
-        },
-      }),
-
-      runs: 0,
+      callbacks: [] as Callback<D, E>[],
       data: [] as Parameters<D[E]>[],
+      runs: 0,
     }
   }
 
@@ -92,6 +61,29 @@ function awayback<D extends Definition>() {
       runs: 0,
       options: merge({ isExecutingPrevious: false }, options ?? {}),
     })
+
+    if (self.runs > 0) {
+      self.callbacks.forEach((callback) => {
+        if (!(callback.options.isExecutingPrevious ?? false)) return
+
+        let isExiting = false
+
+        while (callback.runs < self.runs && !isExiting) {
+          if (
+            callback.type === CallbackType.on ||
+            (callback.type === CallbackType.once && callback.runs === 0) ||
+            (callback.type === CallbackType.only &&
+              callback.runs === 0 &&
+              self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
+          ) {
+            callback.handler(...self.data[callback.runs])
+            callback.runs++
+          } else {
+            isExiting = true
+          }
+        }
+      })
+    }
   }
 
   function on<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
