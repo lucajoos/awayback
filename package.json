@@ -1,13 +1,18 @@
 {
   "name": "awayback",
-  "version": "3.2.4",
+  "version": "3.2.10",
   "description": "A custom event system.",
   "repository": "https://github.com/lucajoos/awayback",
-  "main": "dist/awayback.js",
-  "types": "dist/awayback.d.ts",
+  "main": "dist/esm/awayback.js",
+  "types": "dist/types/awayback.d.ts",
   "scripts": {
-    "build": "pnpm run format && pnpm run lint && tsc -d --project tsconfig.json",
-    "watch": "tsc --project tsconfig.json --watch",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "build:all": "pnpm run build:cjs && pnpm run build:esm && pnpm run build:types",
+    "postbuild": "node postbuild.js",
+    "build": "rm -rf dist && pnpm run build:all && pnpm run postbuild",
+    "watch": "pnpm run build:all -- --watch",
     "lint": "eslint",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json|mjs)\""
   },
@@ -22,6 +27,22 @@
   },
   "license": "MIT",
   "bugs": "https://github.com/lucajoos/awayback/issues",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/types/awayback.d.ts",
+      "require": "./dist/cjs/awayback.js",
+      "import": "./dist/esm/awayback.js",
+      "default": "./dist/esm/awayback.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/types/awayback.d.ts"
+      ]
+    }
+  },
   "dependencies": {
     "eslint-config-prettier": "^9.1.0",
     "lodash": "^4.17.21"

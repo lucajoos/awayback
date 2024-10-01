@@ -117,4 +117,7 @@ function awayback<D extends Definition>() {
   }
 }
 
+export { CallbackType }
+export type { Callback, Definition, Events, CallbackOptions, CallbackHandler }
+
 export default awayback

@@ -1,4 +1,4 @@
-# awayback v3.2.4
+# awayback v3.2.10
 
 A custom event system.
 
