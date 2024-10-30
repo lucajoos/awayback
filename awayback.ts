@@ -1,5 +1,5 @@
-import { Callback, CallbackType, Definition, Events, CallbackOptions, CallbackHandler } from './awayback.model'
-import merge from 'lodash/merge'
+import { Callback, CallbackType, Definition, Events, CallbackOptions, CallbackHandler } from './awayback.model.js'
+import { merge } from 'lodash'
 
 /**
  * @license
