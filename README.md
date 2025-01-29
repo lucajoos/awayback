@@ -52,7 +52,8 @@ const events = awayback()
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
   - `...data` &lt;Any&gt;
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `isIgnoringPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  - `signal` [&lt;AbortSignal;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
+  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is executed each time the event is fired.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -64,6 +65,32 @@ events.on('name', (data) => {
   console.log(data)
 })
 ```
+
+If the `signal` option is provided, the listener can be aborted using an `AbortController`.
+
+```javascript
+const controller = new AbortController()
+const { signal } = controller
+
+events.on(
+  'event',
+  (data) => {
+    console.log(data)
+    // OUTPUT: data
+  },
+  { signal }
+)
+
+events.emit('event', 'data')
+
+// Abort the listener
+controller.abort()
+
+events.emit('event', 'more data')
+// No output, listener has been aborted
+```
+
+The `signal` option allows for fine-grained control over event listeners, enabling you to cancel them when they are no longer needed.
 
 If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
 
@@ -98,7 +125,7 @@ setTimeout(() => {
   - `...data` &lt;Any&gt;
   - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `isIgnoringPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is only executed once when the event is called first.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -114,6 +141,32 @@ events.once('event', (data) => {
 events.emit('event', 'one')
 events.emit('event', 'two')
 ```
+
+If the `signal` option is provided, the listener can be aborted using an `AbortController`.
+
+```javascript
+const controller = new AbortController()
+const { signal } = controller
+
+events.on(
+  'event',
+  (data) => {
+    console.log(data)
+    // OUTPUT: data
+  },
+  { signal }
+)
+
+events.emit('event', 'data')
+
+// Abort the listener
+controller.abort()
+
+events.emit('event', 'more data')
+// No output, listener has been aborted
+```
+
+The `signal` option allows for fine-grained control over event listeners, enabling you to cancel them when they are no longer needed.
 
 If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
 
@@ -143,7 +196,7 @@ setTimeout(() => {
   - `...data` &lt;Any&gt;
   - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `isIgnoringPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is only executed if this callback is the first and only one to be called.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -167,6 +220,32 @@ events.only('event', (data) => {
 
 events.emit('event', 'data')
 ```
+
+If the `signal` option is provided, the listener can be aborted using an `AbortController`.
+
+```javascript
+const controller = new AbortController()
+const { signal } = controller
+
+events.on(
+  'event',
+  (data) => {
+    console.log(data)
+    // OUTPUT: data
+  },
+  { signal }
+)
+
+events.emit('event', 'data')
+
+// Abort the listener
+controller.abort()
+
+events.emit('event', 'more data')
+// No output, listener has been aborted
+```
+
+The `signal` option allows for fine-grained control over event listeners, enabling you to cancel them when they are no longer needed.
 
 If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
 
@@ -229,6 +308,15 @@ const handler = () => {}
 
 events.on('event', handler)
 events.remove('event', handler)
+```
+
+### .destroy()
+
+Iterates through all registered event listeners and removes them, effectively
+disabling any further event handling for the object.
+
+```javascript
+events.destroy()
 ```
 
 ## License

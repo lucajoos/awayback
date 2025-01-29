@@ -9,6 +9,7 @@ export enum CallbackType {
 
 export type CallbackOptions = {
   isExecutingPrevious?: boolean
+  signal?: AbortSignal
 }
 
 export type CallbackHandler<D extends Definition, E extends keyof D> = (...parameters: Parameters<D[E]>) => void

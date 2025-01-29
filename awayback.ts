@@ -55,6 +55,12 @@ function awayback<D extends Definition>() {
     const self = events[event]
     if (!self) return
 
+    if (options?.signal) {
+      options.signal.addEventListener('abort', () => {
+        remove(event, handler)
+      })
+    }
+
     self.callbacks.push({
       handler: handler as CallbackHandler<D, keyof D>,
       type,
@@ -107,6 +113,12 @@ function awayback<D extends Definition>() {
     self.callbacks = self.callbacks.filter((callback) => callback.handler !== handler)
   }
 
+  function destroy() {
+    Object.keys(events).forEach((event) => {
+      delete events[event]
+    })
+  }
+
   return {
     events,
     emit,
@@ -114,6 +126,7 @@ function awayback<D extends Definition>() {
     once,
     only,
     remove,
+    destroy,
   }
 }
 
