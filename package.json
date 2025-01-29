@@ -2,7 +2,10 @@
   "name": "awayback",
   "version": "3.4.0",
   "description": "A custom event system.",
-  "repository": "https://github.com/lucajoos/awayback",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucajoos/awayback.git"
+  },
   "main": "dist/esm/awayback.js",
   "types": "dist/types/awayback.d.ts",
   "scripts": {
