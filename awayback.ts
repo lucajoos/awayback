@@ -1,4 +1,11 @@
-import { Callback, CallbackType, Definition, Events, CallbackOptions, CallbackHandler } from './awayback.model.js'
+import {
+  Callback,
+  CallbackType as ListenerType,
+  Definition,
+  Events,
+  CallbackOptions as ListenerOptions,
+  CallbackHandler,
+} from './awayback.model.js'
 import { merge } from 'lodash-es'
 
 /**
@@ -32,9 +39,9 @@ function awayback<D extends Definition>() {
 
     self.callbacks.forEach((callback) => {
       if (
-        callback.type === CallbackType.on ||
-        (callback.type === CallbackType.once && callback.runs === 0) ||
-        (callback.type === CallbackType.only &&
+        callback.type === ListenerType.on ||
+        (callback.type === ListenerType.once && callback.runs === 0) ||
+        (callback.type === ListenerType.only &&
           callback.runs === 0 &&
           self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
       ) {
@@ -45,10 +52,10 @@ function awayback<D extends Definition>() {
   }
 
   function listen<E extends keyof D>(
-    type: CallbackType,
+    type: ListenerType,
     event: E,
     handler: CallbackHandler<D, E>,
-    options?: CallbackOptions
+    options?: ListenerOptions
   ) {
     if (typeof events[event] === 'undefined') create(event)
 
@@ -76,9 +83,9 @@ function awayback<D extends Definition>() {
 
         while (callback.runs < self.runs && !isExiting) {
           if (
-            callback.type === CallbackType.on ||
-            (callback.type === CallbackType.once && callback.runs === 0) ||
-            (callback.type === CallbackType.only &&
+            callback.type === ListenerType.on ||
+            (callback.type === ListenerType.once && callback.runs === 0) ||
+            (callback.type === ListenerType.only &&
               callback.runs === 0 &&
               self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
           ) {
@@ -92,16 +99,28 @@ function awayback<D extends Definition>() {
     }
   }
 
-  function on<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
-    listen(CallbackType.on, event, handler, options)
+  function on<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions) {
+    listen(ListenerType.on, event, handler, options)
   }
 
-  function once<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
-    listen(CallbackType.once, event, handler, options)
+  function once<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions) {
+    listen(ListenerType.once, event, handler, options)
   }
 
-  function only<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: CallbackOptions) {
-    listen(CallbackType.only, event, handler, options)
+  function only<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions) {
+    listen(ListenerType.only, event, handler, options)
+  }
+
+  function promise<E extends keyof D>(event: E, options?: ListenerOptions): Promise<Parameters<D[E]>> {
+    return new Promise((resolve) => {
+      once(
+        event,
+        (...data) => {
+          resolve(data)
+        },
+        options
+      )
+    })
   }
 
   function remove<E extends keyof D>(event: E, handler: CallbackHandler<D, E>) {
@@ -125,12 +144,13 @@ function awayback<D extends Definition>() {
     on,
     once,
     only,
+    promise,
     remove,
     destroy,
   }
 }
 
-export { CallbackType }
-export type { Callback, Definition, Events, CallbackOptions, CallbackHandler }
+export { ListenerType as CallbackType }
+export type { Callback, Definition, Events, ListenerOptions as CallbackOptions, CallbackHandler }
 
 export default awayback

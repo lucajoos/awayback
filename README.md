@@ -1,4 +1,4 @@
-# awayback v3.4.1
+# awayback v3.5.0
 
 A custom event system.
 
@@ -294,6 +294,29 @@ events.on('event', (...data) => {
 })
 
 events.emit('event', 'some', 'data')
+```
+
+### .promise(event): Promise
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
+  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- returns: `Promise` [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+
+Returns a promise that resolves with the value of the current instance.
+This function is useful for converting callback-based code to promise-based code.
+
+```javascript
+setTimeout(() => {
+  // Fire event after 300ms
+  events.emit('ready', ['some', 'data'])
+}, 300)
+
+const result = await events.promise('ready')
+
+console.log(result)
+// OUTPUT: ['some', 'data']
 ```
 
 ### .remove(event, callback)

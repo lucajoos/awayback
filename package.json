@@ -1,13 +1,24 @@
 {
   "name": "awayback",
-  "version": "3.4.1",
+  "version": "3.5.0",
+  "keywords": [
+    "awayback",
+    "events"
+  ],
   "description": "A custom event system.",
+  "author": {
+    "name": "Luca Raúl Joos",
+    "email": "me@lucajoos.de"
+  },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lucajoos/awayback.git"
   },
-  "main": "dist/esm/awayback.js",
-  "types": "dist/types/awayback.d.ts",
+  "bugs": "https://github.com/lucajoos/awayback/issues",
+  "type": "module",
+  "main": "./dist/esm/awayback.js",
+  "types": "./dist/types/awayback.d.ts",
   "scripts": {
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
@@ -19,17 +30,6 @@
     "lint": "eslint",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json|mjs)\""
   },
-  "type": "module",
-  "keywords": [
-    "awayback",
-    "events"
-  ],
-  "author": {
-    "name": "Luca Raúl Joos",
-    "email": "me@lucajoos.de"
-  },
-  "license": "MIT",
-  "bugs": "https://github.com/lucajoos/awayback/issues",
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -37,13 +37,6 @@
       "require": "./dist/cjs/awayback.js",
       "import": "./dist/esm/awayback.js",
       "default": "./dist/esm/awayback.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/types/awayback.d.ts"
-      ]
     }
   },
   "dependencies": {
