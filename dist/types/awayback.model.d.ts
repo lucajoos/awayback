@@ -1,5 +1,5 @@
 export type Definition = {
-    [key: string]: (...parameters: unknown[]) => void;
+    [key: string]: (...parameters: any[]) => void;
 };
 export declare enum ListenerType {
     on = "on",

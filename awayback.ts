@@ -1,11 +1,4 @@
-import {
-  Callback,
-  ListenerType as ListenerType,
-  Definition,
-  Events,
-  ListenerOptions as ListenerOptions,
-  CallbackHandler,
-} from './awayback.model.js'
+import { Callback, ListenerType, Definition, Events, ListenerOptions, CallbackHandler } from './awayback.model.js'
 import { merge } from 'lodash-es'
 
 /**

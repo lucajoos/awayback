@@ -1,4 +1,4 @@
-import { ListenerType as ListenerType, } from './awayback.model.js';
+import { ListenerType } from './awayback.model.js';
 import { merge } from 'lodash-es';
 /**
  * @license
