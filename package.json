@@ -1,6 +1,6 @@
 {
   "name": "awayback",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "keywords": [
     "awayback",
     "events"
@@ -16,6 +16,7 @@
     "url": "git+https://github.com/lucajoos/awayback.git"
   },
   "bugs": "https://github.com/lucajoos/awayback/issues",
+  "type": "module",
   "main": "./dist/cjs/awayback.js",
   "types": "./dist/types/awayback.d.ts",
   "module": "./dist/esm/awayback.js",
