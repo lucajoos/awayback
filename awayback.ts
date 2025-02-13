@@ -1,9 +1,9 @@
 import {
   Callback,
-  CallbackType as ListenerType,
+  ListenerType as ListenerType,
   Definition,
   Events,
-  CallbackOptions as ListenerOptions,
+  ListenerOptions as ListenerOptions,
   CallbackHandler,
 } from './awayback.model.js'
 import { merge } from 'lodash-es'
@@ -150,7 +150,7 @@ function awayback<D extends Definition>() {
   }
 }
 
-export { ListenerType as CallbackType }
-export type { Callback, Definition, Events, ListenerOptions as CallbackOptions, CallbackHandler }
+export { ListenerType }
+export type { Callback, Definition, Events, ListenerOptions, CallbackHandler }
 
 export default awayback
