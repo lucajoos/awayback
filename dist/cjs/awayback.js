@@ -4,6 +4,7 @@ exports.ListenerType = void 0;
 const awayback_model_js_1 = require("./awayback.model.js");
 Object.defineProperty(exports, "ListenerType", { enumerable: true, get: function () { return awayback_model_js_1.ListenerType; } });
 const lodash_es_1 = require("lodash-es");
+const helpers_js_1 = require("./helpers.js");
 /**
  * @license
  * awayback
@@ -12,6 +13,7 @@ const lodash_es_1 = require("lodash-es");
  */
 function awayback() {
     const events = {};
+    const timeouts = {};
     function create(event) {
         events[event] = {
             callbacks: [],
@@ -88,10 +90,31 @@ function awayback() {
         listen(awayback_model_js_1.ListenerType.only, event, handler, options);
     }
     function promise(event, options) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+            const controller = new AbortController();
+            const signal = (0, helpers_js_1.any)(controller.signal, options?.signal);
+            const _options = (0, lodash_es_1.merge)(options, { signal });
             once(event, (...data) => {
+                controller.abort();
                 resolve(data);
-            }, options);
+            }, _options);
+            if (Array.isArray(options?.reject)) {
+                options.reject.forEach((current) => {
+                    once(current, () => {
+                        controller.abort();
+                        reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`));
+                    }, _options);
+                });
+            }
+            if (typeof options.timeout === 'number') {
+                const id = crypto.randomUUID();
+                timeouts[id] = setTimeout(() => {
+                    if (timeouts[id])
+                        delete timeouts[id];
+                    controller.abort();
+                    reject(new Error(`Event "${String(event)}" was rejected due to timeout after ${options.timeout}ms`));
+                }, options.timeout);
+            }
         });
     }
     function remove(event, handler) {
@@ -103,6 +126,10 @@ function awayback() {
         self.callbacks = self.callbacks.filter((callback) => callback.handler !== handler);
     }
     function destroy() {
+        Object.keys(timeouts).forEach((id) => {
+            clearTimeout(timeouts[id]);
+            delete timeouts[id];
+        });
         Object.keys(events).forEach((event) => {
             delete events[event];
         });

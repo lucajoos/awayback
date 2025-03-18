@@ -1,6 +1,6 @@
 {
   "name": "awayback",
-  "version": "3.5.5",
+  "version": "3.6.0",
   "keywords": [
     "awayback",
     "events"
@@ -41,17 +41,17 @@
     }
   },
   "dependencies": {
+    "globals": "^16.0.0",
     "lodash-es": "4.17.21"
   },
   "devDependencies": {
-    "@eslint/js": "9.20.0",
+    "@eslint/js": "9.22.0",
     "@types/lodash-es": "4.17.12",
-    "eslint": "9.20.1",
-    "eslint-config-prettier": "10.0.1",
+    "eslint": "9.22.0",
+    "eslint-config-prettier": "10.1.1",
     "eslint-plugin-prettier": "5.2.3",
-    "globals": "15.15.0",
-    "prettier": "3.5.0",
-    "typescript": "5.7.3",
-    "typescript-eslint": "8.24.0"
+    "prettier": "3.5.3",
+    "typescript": "5.8.2",
+    "typescript-eslint": "8.26.1"
   }
 }

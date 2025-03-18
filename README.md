@@ -1,4 +1,4 @@
-# awayback v3.5.5
+# awayback v3.6.0
 
 A custom event system.
 
@@ -300,6 +300,8 @@ events.emit('event', 'some', 'data')
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `timeout` [&lt;Number&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+  - `reject` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 - returns: `Promise` [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
@@ -317,6 +319,34 @@ const result = await events.promise('ready')
 
 console.log(result)
 // OUTPUT: ['some', 'data']
+```
+
+If the `timeout` option is provided, the promise will be rejected after the specified time.
+
+```javascript
+const result = await events
+  .promise('ready', {
+    timeout: 100,
+  })
+  .catch(() => {
+    console.log('timeout')
+    // OUTPUT: timeout
+  })
+```
+
+If the `reject` option is provided, the promise will be rejected as soon as one of the provided events is fired.
+
+```javascript
+const result = await events
+  .promise('ready', {
+    reject: ['error'],
+  })
+  .catch(() => {
+    console.log('error')
+    // OUTPUT: error
+  })
+
+events.emit('error')
 ```
 
 ### .remove(event, callback)

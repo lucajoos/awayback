@@ -10,6 +10,10 @@ export type ListenerOptions = {
     signal?: AbortSignal;
     isExecutingPrevious?: boolean;
 };
+export type PromiseOptions<D extends Definition, E extends keyof D> = ListenerOptions & {
+    timeout?: number;
+    reject?: Exclude<keyof D, E>[];
+};
 export type CallbackHandler<D extends Definition, E extends keyof D> = (...parameters: Parameters<D[E]>) => void;
 export type Callback<D extends Definition, E extends keyof D> = {
     type: ListenerType;
