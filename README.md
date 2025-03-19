@@ -1,4 +1,4 @@
-# awayback v3.6.0
+# awayback v4.0.0
 
 A custom event system.
 
@@ -52,6 +52,10 @@ const events = awayback()
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
   - `...data` &lt;Any&gt;
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `filter` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `...data` &lt;Any&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -64,6 +68,25 @@ events.on('name', (data) => {
   // Use transmitted data
   console.log(data)
 })
+```
+
+If the `filter` option is provided, the callback is only executed if the predicate function returns true.
+
+```javascript
+events.on(
+  'event',
+  (data) => {
+    // Event is fired, callback executed
+    // Use transmitted data
+    console.log(data)
+  },
+  {
+    filter: (data) => data[0] === 'some',
+  }
+)
+
+events.emit('event', ['some', 'data'])
+// OUTPUT: ['some', 'data']
 ```
 
 If the `signal` option is provided, the listener can be aborted using an `AbortController`.
@@ -125,6 +148,10 @@ setTimeout(() => {
   - `...data` &lt;Any&gt;
   - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `filter` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `...data` &lt;Any&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -141,6 +168,25 @@ events.once('event', (data) => {
 
 events.emit('event', 'one')
 events.emit('event', 'two')
+```
+
+If the `filter` option is provided, the callback is only executed if the predicate function returns true.
+
+```javascript
+events.once(
+  'event',
+  (data) => {
+    // Event is fired, callback executed
+    // Use transmitted data
+    console.log(data)
+  },
+  {
+    filter: (data) => data[0] === 'some',
+  }
+)
+
+events.emit('event', ['some', 'data'])
+// OUTPUT: ['some', 'data']
 ```
 
 If the `signal` option is provided, the listener can be aborted using an `AbortController`.
@@ -197,6 +243,10 @@ setTimeout(() => {
   - `...data` &lt;Any&gt;
   - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `filter` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `...data` &lt;Any&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -221,6 +271,25 @@ events.only('event', (data) => {
 })
 
 events.emit('event', 'data')
+```
+
+If the `filter` option is provided, the callback is only executed if the predicate function returns true.
+
+```javascript
+events.only(
+  'event',
+  (data) => {
+    // Event is fired, callback executed
+    // Use transmitted data
+    console.log(data)
+  },
+  {
+    filter: (data) => data[0] === 'some',
+  }
+)
+
+events.emit('event', ['some', 'data'])
+// OUTPUT: ['some', 'data']
 ```
 
 If the `signal` option is provided, the listener can be aborted using an `AbortController`.
@@ -302,6 +371,10 @@ events.emit('event', 'some', 'data')
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   - `timeout` [&lt;Number&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   - `reject` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
+  - `filter` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+    - `...data` &lt;Any&gt;
+    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 - returns: `Promise` [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
@@ -319,6 +392,21 @@ const result = await events.promise('ready')
 
 console.log(result)
 // OUTPUT: ['some', 'data']
+```
+
+If the `filter` option is provided, the promise will only be resolved if the predicate function returns true.
+
+```javascript
+const result = await events
+  .promise('ready', {
+    filter: (data) => data[0] === 'some',
+  })
+  .then((data) => {
+    console.log(data)
+    // OUTPUT: ['some', 'data']
+  })
+
+events.emit('ready', ['some', 'data'])
 ```
 
 If the `timeout` option is provided, the promise will be rejected after the specified time.

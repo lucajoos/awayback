@@ -56,22 +56,21 @@ function awayback() {
             options: merge({ isExecutingPrevious: false }, options ?? {}),
         });
         if (self.runs > 0) {
-            self.callbacks.forEach((callback) => {
-                if (!(callback.options.isExecutingPrevious ?? false))
+            self.callbacks.forEach(({ type, runs, options, handler }) => {
+                if (!(options.isExecutingPrevious ?? false))
                     return;
-                let isExiting = false;
-                while (callback.runs < self.runs && !isExiting) {
-                    if (callback.type === ListenerType.on ||
-                        (callback.type === ListenerType.once && callback.runs === 0) ||
-                        (callback.type === ListenerType.only &&
-                            callback.runs === 0 &&
-                            self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)) {
-                        callback.handler(...self.data[callback.runs]);
-                        callback.runs++;
+                while (runs < self.runs) {
+                    if (type === ListenerType.on ||
+                        (type === ListenerType.once && runs === 0) ||
+                        (type === ListenerType.only && runs === 0 && self.callbacks.reduce((sum, callback) => sum + runs, 0) === 0)) {
+                        const data = self.data[runs];
+                        if (typeof options.filter === 'function' && !options.filter(...data))
+                            break;
+                        handler(...data);
+                        runs++;
                     }
-                    else {
-                        isExiting = true;
-                    }
+                    else
+                        break;
                 }
             });
         }
@@ -94,22 +93,22 @@ function awayback() {
                 controller.abort();
                 resolve(data);
             }, _options);
-            if (Array.isArray(options?.reject)) {
-                options.reject.forEach((current) => {
+            if (Array.isArray(_options?.reject)) {
+                _options.reject.forEach((current) => {
                     once(current, () => {
                         controller.abort();
                         reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`));
-                    }, _options);
+                    }, { isExecutingPrevious: _options.isExecutingPrevious, signal });
                 });
             }
-            if (typeof options.timeout === 'number') {
+            if (typeof _options.timeout === 'number') {
                 const id = crypto.randomUUID();
                 timeouts[id] = setTimeout(() => {
                     if (timeouts[id])
                         delete timeouts[id];
                     controller.abort();
-                    reject(new Error(`Event "${String(event)}" was rejected due to timeout after ${options.timeout}ms`));
-                }, options.timeout);
+                    reject(new Error(`Event "${String(event)}" was rejected due to timeout after ${_options.timeout}ms`));
+                }, _options.timeout);
             }
         });
     }

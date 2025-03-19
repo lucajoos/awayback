@@ -7,12 +7,13 @@ export enum ListenerType {
   only = 'only',
 }
 
-export type ListenerOptions = {
+export type ListenerOptions<D extends Definition, E extends keyof D> = {
+  filter?: (...parameters: Parameters<D[E]>) => boolean
   signal?: AbortSignal
   isExecutingPrevious?: boolean
 }
 
-export type PromiseOptions<D extends Definition, E extends keyof D> = ListenerOptions & {
+export type PromiseOptions<D extends Definition, E extends keyof D> = ListenerOptions<D, E> & {
   timeout?: number
   reject?: Exclude<keyof D, E>[]
 }
@@ -23,7 +24,7 @@ export type Callback<D extends Definition, E extends keyof D> = {
   type: ListenerType
   handler: CallbackHandler<D, E>
   runs: number
-  options: ListenerOptions
+  options: ListenerOptions<D, E>
 }
 
 export type Events<D extends Definition> = {
