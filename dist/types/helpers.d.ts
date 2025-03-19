@@ -1,1 +1,1 @@
-export declare function any(...signals: AbortSignal[]): AbortSignal;
+export declare function any(...signals: (AbortSignal | undefined)[]): AbortSignal;

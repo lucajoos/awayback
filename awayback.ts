@@ -140,12 +140,17 @@ function awayback<D extends Definition>() {
         })
       }
 
-      if (typeof _options.timeout === 'number') {
+      flow: if (typeof _options.timeout === 'number') {
+        if (signal.aborted) break flow
         const id = crypto.randomUUID()
 
-        timeouts[id] = setTimeout(() => {
-          if (timeouts[id]) delete timeouts[id]
+        signal.addEventListener('abort', () => {
+          if (!timeouts[id]) return
+          clearTimeout(timeouts[id])
+          delete timeouts[id]
+        })
 
+        timeouts[id] = setTimeout(() => {
           controller.abort()
           reject(new Error(`Event "${String(event)}" was rejected due to timeout after ${_options.timeout}ms`))
         }, _options.timeout)
