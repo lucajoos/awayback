@@ -7,7 +7,7 @@ export declare enum ListenerType {
     only = "only"
 }
 export type ListenerOptions<D extends Definition, E extends keyof D> = {
-    filter?: (...parameters: Parameters<D[E]>) => boolean;
+    predicate?: (...parameters: Parameters<D[E]>) => boolean;
     signal?: AbortSignal;
     isExecutingPrevious?: boolean;
 };

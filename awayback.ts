@@ -89,7 +89,7 @@ function awayback<D extends Definition>() {
             (type === ListenerType.only && runs === 0 && self.callbacks.reduce((sum, callback) => sum + runs, 0) === 0)
           ) {
             const data = self.data[runs]
-            if (typeof options.filter === 'function' && !options.filter(...data)) break
+            if (typeof options.predicate === 'function' && !options.predicate(...data)) break
 
             handler(...data)
             runs++
