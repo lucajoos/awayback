@@ -142,7 +142,7 @@ function awayback<D extends Definition>() {
 
       flow: if (typeof _options.timeout === 'number') {
         if (signal.aborted) break flow
-        const id = crypto.randomUUID()
+        const id = Math.random().toString(16).slice(2)
 
         signal.addEventListener('abort', () => {
           if (!timeouts[id]) return
