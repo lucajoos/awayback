@@ -1,4 +1,4 @@
-import { Callback, ListenerType, Definition, Events, ListenerOptions, CallbackHandler, type PromiseOptions } from './awayback.model.js';
+import { Callback, CallbackHandler, Definition, Events, ListenerOptions, ListenerType, type PromiseOptions } from './awayback.model.js';
 /**
  * @license
  * awayback
@@ -16,5 +16,5 @@ declare function awayback<D extends Definition>(): {
     destroy: () => void;
 };
 export { ListenerType };
-export type { Callback, Definition, Events, ListenerOptions, CallbackHandler };
+export type { Callback, CallbackHandler, Definition, Events, ListenerOptions };
 export default awayback;

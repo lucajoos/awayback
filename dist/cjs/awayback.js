@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ListenerType = void 0;
+const lodash_es_1 = require("lodash-es");
 const awayback_model_js_1 = require("./awayback.model.js");
 Object.defineProperty(exports, "ListenerType", { enumerable: true, get: function () { return awayback_model_js_1.ListenerType; } });
-const lodash_es_1 = require("lodash-es");
 const helpers_js_1 = require("./helpers.js");
 /**
  * @license
@@ -30,15 +30,17 @@ function awayback() {
         if (typeof data !== 'undefined') {
             self.data.push(data);
         }
-        self.runs++;
+        self.runs += 1;
         self.callbacks.forEach((callback) => {
             if (callback.type === awayback_model_js_1.ListenerType.on ||
                 (callback.type === awayback_model_js_1.ListenerType.once && callback.runs === 0) ||
                 (callback.type === awayback_model_js_1.ListenerType.only &&
                     callback.runs === 0 &&
-                    self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)) {
+                    self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)) {
+                if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data))
+                    return;
                 callback.handler(...data);
-                callback.runs++;
+                callback.runs += 1;
             }
         });
     }
@@ -60,18 +62,20 @@ function awayback() {
             options: (0, lodash_es_1.merge)({ isExecutingPrevious: false }, options ?? {}),
         });
         if (self.runs > 0) {
-            self.callbacks.forEach(({ type, runs, options, handler }) => {
-                if (!(options.isExecutingPrevious ?? false))
+            self.callbacks.forEach((callback) => {
+                if (!(callback.options.isExecutingPrevious ?? false))
                     return;
-                while (runs < self.runs) {
-                    if (type === awayback_model_js_1.ListenerType.on ||
-                        (type === awayback_model_js_1.ListenerType.once && runs === 0) ||
-                        (type === awayback_model_js_1.ListenerType.only && runs === 0 && self.callbacks.reduce((sum, callback) => sum + runs, 0) === 0)) {
-                        const data = self.data[runs];
-                        if (typeof options.predicate === 'function' && !options.predicate(...data))
+                while (callback.runs < self.runs) {
+                    if (callback.type === awayback_model_js_1.ListenerType.on ||
+                        (callback.type === awayback_model_js_1.ListenerType.once && callback.runs === 0) ||
+                        (callback.type === awayback_model_js_1.ListenerType.only &&
+                            callback.runs === 0 &&
+                            self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)) {
+                        const data = self.data[callback.runs];
+                        if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data))
                             break;
-                        handler(...data);
-                        runs++;
+                        callback.handler(...data);
+                        callback.runs += 1;
                     }
                     else
                         break;

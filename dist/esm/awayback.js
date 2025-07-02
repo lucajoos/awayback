@@ -1,5 +1,5 @@
-import { ListenerType, } from './awayback.model.js';
 import { merge } from 'lodash-es';
+import { ListenerType, } from './awayback.model.js';
 import { any } from './helpers.js';
 /**
  * @license
@@ -26,15 +26,17 @@ function awayback() {
         if (typeof data !== 'undefined') {
             self.data.push(data);
         }
-        self.runs++;
+        self.runs += 1;
         self.callbacks.forEach((callback) => {
             if (callback.type === ListenerType.on ||
                 (callback.type === ListenerType.once && callback.runs === 0) ||
                 (callback.type === ListenerType.only &&
                     callback.runs === 0 &&
-                    self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)) {
+                    self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)) {
+                if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data))
+                    return;
                 callback.handler(...data);
-                callback.runs++;
+                callback.runs += 1;
             }
         });
     }
@@ -56,18 +58,20 @@ function awayback() {
             options: merge({ isExecutingPrevious: false }, options ?? {}),
         });
         if (self.runs > 0) {
-            self.callbacks.forEach(({ type, runs, options, handler }) => {
-                if (!(options.isExecutingPrevious ?? false))
+            self.callbacks.forEach((callback) => {
+                if (!(callback.options.isExecutingPrevious ?? false))
                     return;
-                while (runs < self.runs) {
-                    if (type === ListenerType.on ||
-                        (type === ListenerType.once && runs === 0) ||
-                        (type === ListenerType.only && runs === 0 && self.callbacks.reduce((sum, callback) => sum + runs, 0) === 0)) {
-                        const data = self.data[runs];
-                        if (typeof options.predicate === 'function' && !options.predicate(...data))
+                while (callback.runs < self.runs) {
+                    if (callback.type === ListenerType.on ||
+                        (callback.type === ListenerType.once && callback.runs === 0) ||
+                        (callback.type === ListenerType.only &&
+                            callback.runs === 0 &&
+                            self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)) {
+                        const data = self.data[callback.runs];
+                        if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data))
                             break;
-                        handler(...data);
-                        runs++;
+                        callback.handler(...data);
+                        callback.runs += 1;
                     }
                     else
                         break;

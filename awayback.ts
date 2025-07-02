@@ -1,13 +1,13 @@
+import { merge } from 'lodash-es'
 import {
   Callback,
-  ListenerType,
+  CallbackHandler,
   Definition,
   Events,
   ListenerOptions,
-  CallbackHandler,
+  ListenerType,
   type PromiseOptions,
 } from './awayback.model.js'
-import { merge } from 'lodash-es'
 import { any } from './helpers.js'
 
 /**
@@ -38,7 +38,7 @@ function awayback<D extends Definition>() {
       self.data.push(data)
     }
 
-    self.runs++
+    self.runs += 1
 
     self.callbacks.forEach((callback) => {
       if (
@@ -46,10 +46,11 @@ function awayback<D extends Definition>() {
         (callback.type === ListenerType.once && callback.runs === 0) ||
         (callback.type === ListenerType.only &&
           callback.runs === 0 &&
-          self.callbacks.reduce((sum, callback) => sum + callback.runs, 0) === 0)
+          self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)
       ) {
+        if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) return
         callback.handler(...data)
-        callback.runs++
+        callback.runs += 1
       }
     })
   }
@@ -79,20 +80,22 @@ function awayback<D extends Definition>() {
     })
 
     if (self.runs > 0) {
-      self.callbacks.forEach(({ type, runs, options, handler }) => {
-        if (!(options.isExecutingPrevious ?? false)) return
+      self.callbacks.forEach((callback) => {
+        if (!(callback.options.isExecutingPrevious ?? false)) return
 
-        while (runs < self.runs) {
+        while (callback.runs < self.runs) {
           if (
-            type === ListenerType.on ||
-            (type === ListenerType.once && runs === 0) ||
-            (type === ListenerType.only && runs === 0 && self.callbacks.reduce((sum, callback) => sum + runs, 0) === 0)
+            callback.type === ListenerType.on ||
+            (callback.type === ListenerType.once && callback.runs === 0) ||
+            (callback.type === ListenerType.only &&
+              callback.runs === 0 &&
+              self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)
           ) {
-            const data = self.data[runs]
-            if (typeof options.predicate === 'function' && !options.predicate(...data)) break
+            const data = self.data[callback.runs]
 
-            handler(...data)
-            runs++
+            if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) break
+            callback.handler(...data)
+            callback.runs += 1
           } else break
         }
       })
@@ -191,6 +194,6 @@ function awayback<D extends Definition>() {
 }
 
 export { ListenerType }
-export type { Callback, Definition, Events, ListenerOptions, CallbackHandler }
+export type { Callback, CallbackHandler, Definition, Events, ListenerOptions }
 
 export default awayback
