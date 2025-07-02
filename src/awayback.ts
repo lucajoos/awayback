@@ -41,16 +41,26 @@ function awayback<D extends Definition>() {
     self.runs += 1
 
     self.callbacks.forEach((callback) => {
+      if (!events[event]) return
+
       if (
         callback.type === ListenerType.on ||
-        (callback.type === ListenerType.once && callback.runs === 0) ||
+        (callback.type === ListenerType.once && callback.calls === 0) ||
         (callback.type === ListenerType.only &&
-          callback.runs === 0 &&
-          self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)
+          callback.calls === 0 &&
+          self.callbacks.reduce((sum, current) => sum + current.calls, 0) === 0)
       ) {
-        if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) return
-        callback.handler(...data)
         callback.runs += 1
+
+        if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) return
+
+        try {
+          callback.handler(...data)
+        } catch (error) {
+          console.error(`Error occurred in event handler for event "${String(event)}":`, error)
+        }
+
+        callback.calls += 1
       }
     })
   }
@@ -67,6 +77,8 @@ function awayback<D extends Definition>() {
     if (!self) return
 
     if (options?.signal) {
+      if (options.signal.aborted) return
+
       options.signal.addEventListener('abort', () => {
         remove(event, handler)
       })
@@ -76,6 +88,7 @@ function awayback<D extends Definition>() {
       handler: handler as CallbackHandler<D, keyof D>,
       type,
       runs: 0,
+      calls: 0,
       options: merge({ isExecutingPrevious: false }, options ?? {}),
     })
 
@@ -84,18 +97,27 @@ function awayback<D extends Definition>() {
         if (!(callback.options.isExecutingPrevious ?? false)) return
 
         while (callback.runs < self.runs) {
+          if (!events[event]) break
+
           if (
             callback.type === ListenerType.on ||
-            (callback.type === ListenerType.once && callback.runs === 0) ||
+            (callback.type === ListenerType.once && callback.calls === 0) ||
             (callback.type === ListenerType.only &&
-              callback.runs === 0 &&
-              self.callbacks.reduce((sum, current) => sum + current.runs, 0) === 0)
+              callback.calls === 0 &&
+              self.callbacks.reduce((sum, current) => sum + current.calls, 0) === 0)
           ) {
             const data = self.data[callback.runs]
-
-            if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) break
-            callback.handler(...data)
             callback.runs += 1
+
+            if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) continue
+
+            try {
+              callback.handler(...data)
+            } catch (error) {
+              console.error(`Error occurred in event handler for event "${String(event)}":`, error)
+            }
+
+            callback.calls += 1
           } else break
         }
       })

@@ -20,6 +20,7 @@ export type Callback<D extends Definition, E extends keyof D> = {
     type: ListenerType;
     handler: CallbackHandler<D, E>;
     runs: number;
+    calls: number;
     options: ListenerOptions<D, E>;
 };
 export type Events<D extends Definition> = {
