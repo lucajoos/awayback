@@ -1,6 +1,6 @@
 export var ListenerType;
 (function (ListenerType) {
-    ListenerType["on"] = "on";
-    ListenerType["once"] = "once";
-    ListenerType["only"] = "only";
+    ListenerType[ListenerType["on"] = 0] = "on";
+    ListenerType[ListenerType["once"] = 1] = "once";
+    ListenerType[ListenerType["only"] = 2] = "only";
 })(ListenerType || (ListenerType = {}));

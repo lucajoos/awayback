@@ -27,9 +27,9 @@ function awayback<D extends Definition, const C extends (keyof D)[] | undefined 
 
   function create<E extends keyof D>(event: E) {
     events[event] = {
-      callbacks: <Callback<D, E, C>[]>[],
-      data: <Parameters<D[E]>[]>[],
-      runs: 0,
+      c: <Callback<D, E, C>[]>[],
+      d: <Parameters<D[E]>[]>[],
+      r: 0,
     }
   }
 
@@ -39,32 +39,32 @@ function awayback<D extends Definition, const C extends (keyof D)[] | undefined 
     const self = events[event]
     if (!self) return
 
-    if (typeof data !== 'undefined' && Array.isArray(cache) && cache.includes(event)) {
-      self.data.push(data)
+    if (typeof data !== 'undefined' && (!Array.isArray(cache) || cache.includes(event))) {
+      self.d.push(data)
     }
 
-    self.runs += 1
+    self.r += 1
 
-    self.callbacks.forEach((callback) => {
+    self.c.forEach((callback) => {
       if (!events[event]) return
 
       if (
-        callback.type === ListenerType.on ||
-        (callback.type === ListenerType.once && callback.calls === 0) ||
-        (callback.type === ListenerType.only &&
-          callback.calls === 0 &&
-          self.callbacks.reduce((sum, current) => sum + current.calls, 0) === 0)
+        callback.t === ListenerType.on ||
+        (callback.t === ListenerType.once && callback.c === 0) ||
+        (callback.t === ListenerType.only &&
+          callback.c === 0 &&
+          self.c.reduce((sum, current) => sum + current.c, 0) === 0)
       ) {
-        callback.runs += 1
-        if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) return
+        callback.r += 1
+        if (typeof callback.o.predicate === 'function' && !callback.o.predicate(...data)) return
 
         try {
-          callback.handler(...data)
+          callback.h(...data)
         } catch (error) {
           console.error(`Error occurred in event handler for event "${String(event)}":`, error)
         }
 
-        callback.calls += 1
+        callback.c += 1
       }
     })
   }
@@ -88,40 +88,40 @@ function awayback<D extends Definition, const C extends (keyof D)[] | undefined 
       })
     }
 
-    self.callbacks.push({
-      handler: handler as CallbackHandler<D, keyof D>,
-      type,
-      runs: 0,
-      calls: 0,
-      options: merge({ isExecutingPrevious: false }, options ?? {}),
+    self.c.push({
+      h: handler as CallbackHandler<D, keyof D>,
+      t: type,
+      r: 0,
+      c: 0,
+      o: merge({ isExecutingPrevious: false }, options ?? {}),
     })
 
-    if (self.runs > 0) {
-      self.callbacks.forEach((callback) => {
-        if (!(callback.options.isExecutingPrevious ?? false)) return
+    if (self.r > 0) {
+      self.c.forEach((callback) => {
+        if (!(callback.o.isExecutingPrevious ?? false)) return
 
-        while (callback.runs < self.runs) {
+        while (callback.r < self.r) {
           if (!events[event]) break
 
           if (
-            callback.type === ListenerType.on ||
-            (callback.type === ListenerType.once && callback.calls === 0) ||
-            (callback.type === ListenerType.only &&
-              callback.calls === 0 &&
-              self.callbacks.reduce((sum, current) => sum + current.calls, 0) === 0)
+            callback.t === ListenerType.on ||
+            (callback.t === ListenerType.once && callback.c === 0) ||
+            (callback.t === ListenerType.only &&
+              callback.c === 0 &&
+              self.c.reduce((sum, current) => sum + current.c, 0) === 0)
           ) {
-            const data = self.data[callback.runs]
-            callback.runs += 1
+            const data = self.d[callback.r]
+            callback.r += 1
 
-            if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) continue
+            if (typeof callback.o.predicate === 'function' && !callback.o.predicate(...data)) continue
 
             try {
-              callback.handler(...data)
+              callback.h(...data)
             } catch (error) {
               console.error(`Error occurred in event handler for event "${String(event)}":`, error)
             }
 
-            callback.calls += 1
+            callback.c += 1
           } else break
         }
       })
@@ -198,7 +198,7 @@ function awayback<D extends Definition, const C extends (keyof D)[] | undefined 
     const self = events[event]
     if (!self) return
 
-    self.callbacks = self.callbacks.filter((callback) => callback.handler !== handler)
+    self.c = self.c.filter((callback) => callback.h !== handler)
   }
 
   function destroy() {

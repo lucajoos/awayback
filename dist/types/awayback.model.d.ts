@@ -2,9 +2,9 @@ export type Definition = {
     [key: string]: (...parameters: any[]) => void;
 };
 export declare enum ListenerType {
-    on = "on",
-    once = "once",
-    only = "only"
+    on = 0,
+    once = 1,
+    only = 2
 }
 export type ListenerOptions<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = {
     predicate?: (...parameters: Parameters<D[E]>) => boolean;
@@ -17,17 +17,17 @@ export type PromiseOptions<D extends Definition, E extends keyof D, C extends (k
 };
 export type CallbackHandler<D extends Definition, E extends keyof D> = (...parameters: Parameters<D[E]>) => void;
 export type Callback<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = {
-    type: ListenerType;
-    handler: CallbackHandler<D, E>;
-    runs: number;
-    calls: number;
-    options: ListenerOptions<D, E, C>;
+    t: ListenerType;
+    h: CallbackHandler<D, E>;
+    r: number;
+    c: number;
+    o: ListenerOptions<D, E, C>;
 };
 export type Events<D extends Definition, C extends (keyof D)[] | undefined> = {
     [E in keyof D]: {
-        callbacks: Callback<D, E, C>[];
-        data: Parameters<D[E]>[];
-        runs: number;
+        c: Callback<D, E, C>[];
+        d: Parameters<D[E]>[];
+        r: number;
     };
 };
 export type Awayback<D extends Definition, C extends (keyof D)[] | undefined = undefined> = {

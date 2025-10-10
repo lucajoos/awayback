@@ -2,9 +2,9 @@
 export type Definition = { [key: string]: (...parameters: any[]) => void }
 
 export enum ListenerType {
-  on = 'on',
-  once = 'once',
-  only = 'only',
+  on = 0b00,
+  once = 0b01,
+  only = 0b10,
 }
 
 export type ListenerOptions<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = {
@@ -25,18 +25,18 @@ export type PromiseOptions<
 export type CallbackHandler<D extends Definition, E extends keyof D> = (...parameters: Parameters<D[E]>) => void
 
 export type Callback<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = {
-  type: ListenerType
-  handler: CallbackHandler<D, E>
-  runs: number
-  calls: number
-  options: ListenerOptions<D, E, C>
+  t: ListenerType
+  h: CallbackHandler<D, E>
+  r: number
+  c: number
+  o: ListenerOptions<D, E, C>
 }
 
 export type Events<D extends Definition, C extends (keyof D)[] | undefined> = {
   [E in keyof D]: {
-    callbacks: Callback<D, E, C>[]
-    data: Parameters<D[E]>[]
-    runs: number
+    c: Callback<D, E, C>[]
+    d: Parameters<D[E]>[]
+    r: number
   }
 }
 
