@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import awayback from '../src/awayback'
+import type { Awayback } from '../src/awayback.model.ts'
 
 type TestEvents = {
   foo: (data: string) => void
@@ -9,7 +10,7 @@ type TestEvents = {
 }
 
 describe('awayback', () => {
-  let events: ReturnType<typeof awayback<TestEvents>>
+  let events: Awayback<TestEvents>
 
   beforeEach(() => {
     events = awayback<TestEvents>()

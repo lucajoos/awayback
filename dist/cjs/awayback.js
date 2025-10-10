@@ -5,13 +5,7 @@ const lodash_es_1 = require("lodash-es");
 const awayback_model_js_1 = require("./awayback.model.js");
 Object.defineProperty(exports, "ListenerType", { enumerable: true, get: function () { return awayback_model_js_1.ListenerType; } });
 const helpers_js_1 = require("./helpers.js");
-/**
- * @license
- * awayback
- * Released under MIT license
- * Copyright Luca Raúl Joos
- */
-function awayback() {
+function awayback(cache) {
     const events = {};
     const timeouts = {};
     function create(event) {
@@ -27,7 +21,7 @@ function awayback() {
         const self = events[event];
         if (!self)
             return;
-        if (typeof data !== 'undefined') {
+        if (typeof data !== 'undefined' && Array.isArray(cache) && cache.includes(event)) {
             self.data.push(data);
         }
         self.runs += 1;
@@ -125,7 +119,10 @@ function awayback() {
                     once(current, () => {
                         controller.abort();
                         reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`));
-                    }, { isExecutingPrevious: _options.isExecutingPrevious, signal });
+                    }, {
+                        isExecutingPrevious: ((cache.includes(current) ? _options.isExecutingPrevious : false)),
+                        signal,
+                    });
                 });
             }
             flow: if (typeof _options.timeout === 'number') {

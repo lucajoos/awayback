@@ -1,6 +1,6 @@
-# awayback v4.2.0
+# awayback v4.3.0
 
-A custom event system.
+A custom event system with type-safe events.
 
 [![npm](https://img.shields.io/npm/v/awayback)](https://www.npmjs.com/package/awayback)
 [![npm](https://img.shields.io/github/last-commit/lucajoos/awayback)](https://www.npmjs.com/package/awayback)
@@ -11,8 +11,7 @@ import awayback from 'awayback'
 const events = awayback()
 
 events.on('event', (data) => {
-  console.log(data)
-  // data
+  console.log(data) // OUTPUT: data
 })
 
 events.emit('event', 'data')
@@ -30,21 +29,72 @@ $ npm i --save awayback
 In JavaScript:
 
 ```javascript
-// Require awayback & create a new instance
+// Import and create a new 'awayback' event system instance.
 import awayback from 'awayback'
 const events = awayback()
 ```
 
 ## API
 
-### awayback()
+### awayback(cache?)
 
-Require `awayback` & create a new instance.
+Create a new `awayback` event system instance.
 
-```javascript
+- `cache` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) Optional array of event names to restrict caching to specific events. When `undefined` (default), all events are cached.
+- **returns:** `Awayback<D, C>` where `D` is your event definitions and `C` is the cache array type
+
+Event caching allows listeners to replay previous events when added with the `isExecutingPrevious` option set to `true`. By default, all events are cached. Specify an array of event names to restrict caching to only those events.
+
+```typescript
+type Events = {
+  login: (userId: string) => void
+  logout: (userId: string) => void
+}
+
+// Per default all events will be cached
 import awayback from 'awayback'
-const events = awayback()
+const events = awayback<Events>()
+
+// isExecutingPrevious can be 'true' for all events
+events.on(
+  'login',
+  (userId) => {
+    console.log(userId)
+  },
+  { isExecutingPrevious: true }
+)
+
+events.on(
+  'logout',
+  (userId) => {
+    console.log(userId)
+  },
+  { isExecutingPrevious: true }
+)
 ```
+
+The TypeScript compiler helps prevent accidental usage of caching features on events that aren't configured for caching. This type safety ensures you can't mistakenly attempt to replay events that haven't been stored.
+
+```typescript
+type Events = {
+  login: () => void
+  logout: () => void
+}
+
+// Only the 'login' event will be cached
+const events = awayback<Events, ['login']>(['login'])
+
+// isExecutingPrevious can be 'true' for 'login' events
+events.on('login', () => {}, { isExecutingPrevious: true })
+
+// TypeScript error: isExecutingPrevious cannot be 'true' for 'logout' since it's not in the cache array
+events.on('logout', () => {}, { isExecutingPrevious: true })
+
+// Regular event listening works normally, just no replay of previous events
+events.on('logout', () => {}, { isExecutingPrevious: false })
+```
+
+For optimal performance in applications with many events, use the `cache` parameter to restrict caching to only the events that need replay functionality. Events not specified in the cache array will not store their historical data, reducing memory usage and improving performance when handling high-frequency events.
 
 ### .on(event, callback, options)
 
@@ -55,7 +105,7 @@ const events = awayback()
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -151,7 +201,7 @@ setTimeout(() => {
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -246,7 +296,7 @@ setTimeout(() => {
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -374,10 +424,10 @@ events.emit('event', 'some', 'data')
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
     - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - returns: `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-- returns: `Promise` [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- **returns:** `Promise` [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
 Returns a promise that resolves with the value of the current instance.
 This function is useful for converting callback-based code to promise-based code.

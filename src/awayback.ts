@@ -6,6 +6,7 @@ import {
   Events,
   ListenerOptions,
   ListenerType,
+  type Awayback,
   type PromiseOptions,
 } from './awayback.model.js'
 import { any } from './helpers.js'
@@ -16,14 +17,18 @@ import { any } from './helpers.js'
  * Released under MIT license
  * Copyright Luca Raúl Joos
  */
-function awayback<D extends Definition>() {
-  const events = {} as Events<D>
+function awayback<D extends Definition>(cache?: undefined): Awayback<D, undefined>
+function awayback<D extends Definition, const C extends (keyof D)[]>(cache: C): Awayback<D, C>
+function awayback<D extends Definition, const C extends (keyof D)[] | undefined = undefined>(
+  cache?: C
+): Awayback<D, C> {
+  const events = {} as Events<D, C>
   const timeouts: Record<string, ReturnType<typeof setTimeout>> = {}
 
   function create<E extends keyof D>(event: E) {
     events[event] = {
-      callbacks: [] as Callback<D, E>[],
-      data: [] as Parameters<D[E]>[],
+      callbacks: <Callback<D, E, C>[]>[],
+      data: <Parameters<D[E]>[]>[],
       runs: 0,
     }
   }
@@ -34,7 +39,7 @@ function awayback<D extends Definition>() {
     const self = events[event]
     if (!self) return
 
-    if (typeof data !== 'undefined') {
+    if (typeof data !== 'undefined' && Array.isArray(cache) && cache.includes(event)) {
       self.data.push(data)
     }
 
@@ -51,7 +56,6 @@ function awayback<D extends Definition>() {
           self.callbacks.reduce((sum, current) => sum + current.calls, 0) === 0)
       ) {
         callback.runs += 1
-
         if (typeof callback.options.predicate === 'function' && !callback.options.predicate(...data)) return
 
         try {
@@ -69,7 +73,7 @@ function awayback<D extends Definition>() {
     type: ListenerType,
     event: E,
     handler: CallbackHandler<D, E>,
-    options?: ListenerOptions<D, E>
+    options?: ListenerOptions<D, E, C>
   ) {
     if (typeof events[event] === 'undefined') create(event)
 
@@ -124,19 +128,19 @@ function awayback<D extends Definition>() {
     }
   }
 
-  function on<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E>) {
+  function on<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E, C>) {
     listen(ListenerType.on, event, handler, options)
   }
 
-  function once<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E>) {
+  function once<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E, C>) {
     listen(ListenerType.once, event, handler, options)
   }
 
-  function only<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E>) {
+  function only<E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E, C>) {
     listen(ListenerType.only, event, handler, options)
   }
 
-  function promise<E extends keyof D>(event: E, options?: PromiseOptions<D, E>): Promise<Parameters<D[E]>> {
+  function promise<E extends keyof D>(event: E, options?: PromiseOptions<D, E, C>): Promise<Parameters<D[E]>> {
     return new Promise((resolve, reject) => {
       const controller = new AbortController()
       const signal = any(controller.signal, options?.signal)
@@ -160,7 +164,12 @@ function awayback<D extends Definition>() {
               controller.abort()
               reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`))
             },
-            { isExecutingPrevious: _options.isExecutingPrevious, signal }
+            {
+              isExecutingPrevious: <ListenerOptions<D, typeof current, C>['isExecutingPrevious']>(
+                (cache.includes(current) ? _options.isExecutingPrevious : false)
+              ),
+              signal,
+            }
           )
         })
       }
