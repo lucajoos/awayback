@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import awayback from '../src/awayback'
 import type { Awayback } from '../src/awayback.model.ts'
 
-type TestEvents = {
+type Events = {
   foo: (data: string) => void
   bar: (x: number, y: number) => void
   arr: (arr: string[]) => void
@@ -10,10 +10,10 @@ type TestEvents = {
 }
 
 describe('awayback', () => {
-  let events: Awayback<TestEvents, ['foo']>
+  let events: Awayback<Events, ['foo']>
 
   beforeEach(() => {
-    events = awayback<TestEvents, ['foo']>(['foo'])
+    events = awayback<Events, ['foo']>(['foo'])
   })
 
   it('should only call .only listener if it is the only listener and no previous calls', () => {
@@ -444,7 +444,7 @@ describe('awayback', () => {
 
   it('should not replay events when replay array is not provided', () => {
     const handler = vi.fn()
-    const emitter = awayback<TestEvents>()
+    const emitter = awayback<Events>()
 
     emitter.emit('foo', 'data1')
     emitter.emit('foo', 'data2')
@@ -462,7 +462,7 @@ describe('awayback', () => {
     const fooHandler = vi.fn()
     const barHandler = vi.fn()
 
-    const emitter = awayback<TestEvents, ['foo']>(['foo'])
+    const emitter = awayback<Events, ['foo']>(['foo'])
 
     emitter.emit('foo', 'foo-data')
     emitter.emit('bar', 1, 2)

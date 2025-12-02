@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "nodenext",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "noEmit": false,
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["bench/awayback.bench.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

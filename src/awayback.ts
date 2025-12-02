@@ -24,7 +24,7 @@ function awayback<D extends Definition, const R extends (keyof D)[]>(replay: R):
 function awayback<D extends Definition, const R extends (keyof D)[] | undefined = undefined>(
   replay?: R
 ): Awayback<D, R> {
-  const events = <Events<D, R>>{}
+  const events: Partial<Events<D, R>> = {}
   const timeouts: Record<string, ReturnType<typeof setTimeout>> = {}
 
   function _create<E extends keyof D>(event: E) {
@@ -227,7 +227,6 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   }
 
   return {
-    events,
     emit,
     on,
     once,

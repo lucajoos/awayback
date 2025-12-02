@@ -55,7 +55,6 @@ export type Events<D extends Definition, R extends (keyof D)[] | undefined> = {
 }
 
 export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = undefined> = {
-  events: Events<D, R>
   emit: <E extends keyof D>(event: E, ...data: Parameters<D[E]>) => void
   on: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void
   once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void

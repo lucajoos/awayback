@@ -160,7 +160,6 @@ function awayback(replay) {
         });
     }
     return {
-        events,
         emit,
         on,
         once,

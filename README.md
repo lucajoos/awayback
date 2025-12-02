@@ -1,4 +1,4 @@
-# awayback v5.0.0
+# awayback v6.0.0
 
 A custom event system with type-safe events.
 
@@ -289,7 +289,7 @@ setTimeout(() => {
 }, 1000)
 ```
 
-### .first(event, callback, options)
+### .only(event, callback, options)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
@@ -305,7 +305,7 @@ The callback is only executed if this callback is the first listener registered 
 The arguments from the `emit` function call are also exposed to the listener.
 
 ```javascript
-events.first('name', (data) => {
+events.only('name', (data) => {
   // Event is fired, callback executed
   // Use transmitted data
   console.log(data)
@@ -315,7 +315,7 @@ events.first('name', (data) => {
 ```javascript
 events.on('event', () => {})
 
-events.first('event', (data) => {
+events.only('event', (data) => {
   // Event is fired, callback is not executed
   // because it's not the first event listener
   console.log(data)
@@ -327,7 +327,7 @@ events.emit('event', 'data')
 If the `predicate` option is provided, the callback is only executed if the predicate function returns true.
 
 ```javascript
-events.first(
+events.only(
   'event',
   (data) => {
     // Event is fired, callback executed
@@ -349,7 +349,7 @@ If the `signal` option is provided, the listener can be aborted using an `AbortC
 const controller = new AbortController()
 const { signal } = controller
 
-events.first(
+events.only(
   'event',
   (data) => {
     console.log(data)
@@ -375,12 +375,12 @@ If the argument `isReplaying` in `options` is set to `true`, the listener execut
 // Create instance with replay enabled for 'event'
 const events = awayback(['event'])
 
-// Fire event before the initialization of .first()
+// Fire event before the initialization of .only()
 // This event call will also be executed
 events.emit('event', 'before')
 
 setTimeout(() => {
-  events.first(
+  events.only(
     'event',
     (data) => {
       console.log(data)
