@@ -1,4 +1,4 @@
-# awayback v4.3.1
+# awayback v5.0.0
 
 A custom event system with type-safe events.
 
@@ -19,14 +19,11 @@ events.emit('event', 'data')
 
 ## Installation
 
-Install using [NPM](https://npmjs.org) (or yarn):
-
 ```
-$ npm i -g npm
-$ npm i --save awayback
+$ npm i awayback
 ```
 
-In JavaScript:
+Afterwards:
 
 ```javascript
 // Import and create a new 'awayback' event system instance.
@@ -36,14 +33,14 @@ const events = awayback()
 
 ## API
 
-### awayback(cache?)
+### awayback(replay?)
 
 Create a new `awayback` event system instance.
 
-- `cache` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) Optional array of event names to restrict caching to specific events. When `undefined` (default), all events are cached.
-- **returns:** `Awayback<D, C>` where `D` is your event definitions and `C` is the cache array type
+- `replay` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) Optional array of event names to enable replay functionality for specific events. When `undefined` (default), no events support replay.
+- **returns:** `Awayback<D, R>` where `D` is your event definitions and `R` is the replay array type
 
-Event caching allows listeners to replay previous events when added with the `isExecutingPrevious` option set to `true`. By default, all events are cached. Specify an array of event names to restrict caching to only those events.
+Event replay allows listeners to receive and process previous event emissions when added with the `isReplaying` option set to `true`. By default, no events are replayed. Specify an array of event names to enable replay functionality for only those events.
 
 ```typescript
 type Events = {
@@ -51,29 +48,32 @@ type Events = {
   logout: (userId: string) => void
 }
 
-// Per default all events will be cached
-import awayback from 'awayback'
+// No events support replay by default
 const events = awayback<Events>()
 
-// isExecutingPrevious can be 'true' for all events
+// isReplaying cannot be 'true' without a replay array
 events.on(
   'login',
   (userId) => {
     console.log(userId)
   },
-  { isExecutingPrevious: true }
-)
+  { isReplaying: true }
+) // TypeScript error: isReplaying must be false
 
-events.on(
-  'logout',
+// To enable replay, specify which events to track
+const eventsWithReplay = awayback<Events>(['login'])
+
+// Now isReplaying can be 'true' for 'login' events
+eventsWithReplay.on(
+  'login',
   (userId) => {
     console.log(userId)
   },
-  { isExecutingPrevious: true }
+  { isReplaying: true }
 )
 ```
 
-The TypeScript compiler helps prevent accidental usage of caching features on events that aren't configured for caching. This type safety ensures you can't mistakenly attempt to replay events that haven't been stored.
+The TypeScript compiler helps prevent accidental usage of replay features on events that aren't configured for replay. This type safety ensures you can't mistakenly attempt to replay events that haven't been stored.
 
 ```typescript
 type Events = {
@@ -81,20 +81,20 @@ type Events = {
   logout: () => void
 }
 
-// Only the 'login' event will be cached
-const events = awayback<Events, ['login']>(['login'])
+// Only the 'login' event will support replay
+const events = awayback<Events>(['login'])
 
-// isExecutingPrevious can be 'true' for 'login' events
-events.on('login', () => {}, { isExecutingPrevious: true })
+// isReplaying can be 'true' for 'login' events
+events.on('login', () => {}, { isReplaying: true })
 
-// TypeScript error: isExecutingPrevious cannot be 'true' for 'logout' since it's not in the cache array
-events.on('logout', () => {}, { isExecutingPrevious: true })
+// TypeScript error: isReplaying cannot be 'true' for 'logout' since it's not in the replay array
+events.on('logout', () => {}, { isReplaying: true })
 
 // Regular event listening works normally, just no replay of previous events
-events.on('logout', () => {}, { isExecutingPrevious: false })
+events.on('logout', () => {}, { isReplaying: false })
 ```
 
-For optimal performance in applications with many events, use the `cache` parameter to restrict caching to only the events that need replay functionality. Events not specified in the cache array will not store their historical data, reducing memory usage and improving performance when handling high-frequency events.
+For optimal performance in applications with many events, use the `replay` parameter to restrict replay functionality to only the events that need it. Events not specified in the replay array will not store their historical data, reducing memory usage and improving performance when handling high-frequency events.
 
 ### .on(event, callback, options)
 
@@ -104,10 +104,9 @@ For optimal performance in applications with many events, use the `cache` parame
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
-    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
-  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is executed each time the event is fired.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -165,9 +164,12 @@ events.emit('event', 'more data')
 
 The `signal` option allows for fine-grained control over event listeners, enabling you to cancel them when they are no longer needed.
 
-If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
+If the argument `isReplaying` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener. Note that this only works for events specified in the replay array when creating the awayback instance.
 
 ```javascript
+// Create instance with replay enabled for 'event'
+const events = awayback(['event'])
+
 // Fire event before the initialization of .on()
 // This event call will also be executed
 events.emit('event', 'before')
@@ -182,11 +184,11 @@ setTimeout(() => {
       // OUTPUT: another call
     },
     {
-      isExecutingPrevious: true,
+      isReplaying: true,
     }
   )
 
-  evens.emit('event', 'after')
+  events.emit('event', 'after')
   events.emit('event', 'another call')
 }, 1000)
 ```
@@ -196,14 +198,12 @@ setTimeout(() => {
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
   - `...data` &lt;Any&gt;
-  - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
-    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
-  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 The callback is only executed once when the event is called first.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -245,7 +245,7 @@ If the `signal` option is provided, the listener can be aborted using an `AbortC
 const controller = new AbortController()
 const { signal } = controller
 
-events.on(
+events.once(
   'event',
   (data) => {
     console.log(data)
@@ -265,9 +265,12 @@ events.emit('event', 'more data')
 
 The `signal` option allows for fine-grained control over event listeners, enabling you to cancel them when they are no longer needed.
 
-If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
+If the argument `isReplaying` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener. Note that this only works for events specified in the replay array when creating the awayback instance.
 
 ```javascript
+// Create instance with replay enabled for 'event'
+const events = awayback(['event'])
+
 // Fire event before the initialization of .once()
 // This event call will also be executed
 events.emit('event', 'before')
@@ -280,31 +283,29 @@ setTimeout(() => {
       // OUTPUT: before
     },
     {
-      isExecutingPrevious: true,
+      isReplaying: true,
     }
   )
 }, 1000)
 ```
 
-### .only(event, callback, options)
+### .first(event, callback, options)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
   - `...data` &lt;Any&gt;
-  - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
-    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
-  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-The callback is only executed if this callback is the first and only one to be called.
+The callback is only executed if this callback is the first listener registered and no other listener has been executed yet.
 The arguments from the `emit` function call are also exposed to the listener.
 
 ```javascript
-events.only('name', (data) => {
+events.first('name', (data) => {
   // Event is fired, callback executed
   // Use transmitted data
   console.log(data)
@@ -314,9 +315,9 @@ events.only('name', (data) => {
 ```javascript
 events.on('event', () => {})
 
-events.only('event', (data) => {
+events.first('event', (data) => {
   // Event is fired, callback is not executed
-  // because it's not the only event listener
+  // because it's not the first event listener
   console.log(data)
 })
 
@@ -326,7 +327,7 @@ events.emit('event', 'data')
 If the `predicate` option is provided, the callback is only executed if the predicate function returns true.
 
 ```javascript
-events.only(
+events.first(
   'event',
   (data) => {
     // Event is fired, callback executed
@@ -348,7 +349,7 @@ If the `signal` option is provided, the listener can be aborted using an `AbortC
 const controller = new AbortController()
 const { signal } = controller
 
-events.on(
+events.first(
   'event',
   (data) => {
     console.log(data)
@@ -368,22 +369,25 @@ events.emit('event', 'more data')
 
 The `signal` option allows for fine-grained control over event listeners, enabling you to cancel them when they are no longer needed.
 
-If the argument `isExecutingPrevious` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener.
+If the argument `isReplaying` in `options` is set to `true`, the listener executes event calls from before the initialization of the listener. Note that this only works for events specified in the replay array when creating the awayback instance.
 
 ```javascript
-// Fire event before the initialization of .only()
+// Create instance with replay enabled for 'event'
+const events = awayback(['event'])
+
+// Fire event before the initialization of .first()
 // This event call will also be executed
 events.emit('event', 'before')
 
 setTimeout(() => {
-  events.only(
+  events.first(
     'event',
     (data) => {
       console.log(data)
       // OUTPUT: before
     },
     {
-      isExecutingPrevious: true,
+      isReplaying: true,
     }
   )
 }, 1000)
@@ -394,7 +398,7 @@ setTimeout(() => {
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `...data` &lt;Any&gt;
 
-Events can be fired using the function `fire`.
+Events can be fired using the function `emit`.
 The first required argument is the name of the event, the second, optional one, is data that can be transmitted.
 
 ```javascript
@@ -406,7 +410,7 @@ events.emit('name', 'data')
 More than two arguments can be passed on.
 
 ```javascript
-// Listen to the events 'first' and 'second'
+// Listen to the event
 events.on('event', (...data) => {
   console.log(data)
   // OUTPUT: ['some', 'data']
@@ -415,7 +419,7 @@ events.on('event', (...data) => {
 events.emit('event', 'some', 'data')
 ```
 
-### .promise(event): Promise
+### .promise(event, options): Promise
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
@@ -423,11 +427,10 @@ events.emit('event', 'some', 'data')
   - `reject` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
   - `predicate` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
     - `...data` &lt;Any&gt;
-    - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-    - **returns:** `Boolean` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+    - **returns:** [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
-  - `isExecutingPrevious` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-- **returns:** `Promise` [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+  - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- **returns:** [&lt;Promise&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
 Returns a promise that resolves with the value of the current instance.
 This function is useful for converting callback-based code to promise-based code.
@@ -492,7 +495,6 @@ events.emit('error')
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `callback` [&lt;Function&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
   - `...data` &lt;Any&gt;
-  - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 Removes a listener from the event so that this is no longer executed when firing.
 

@@ -6,37 +6,49 @@ export declare enum ListenerType {
     once = 1,
     only = 2
 }
-export type ListenerOptions<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = {
+export type ListenerOptions<D extends Definition, E extends keyof D, R extends (keyof D)[] | undefined> = {
     predicate?: (...parameters: Parameters<D[E]>) => boolean;
     signal?: AbortSignal;
-    isExecutingPrevious?: C extends (keyof D)[] ? (E extends C[number] ? boolean : false) : boolean;
+    isReplaying?: R extends (keyof D)[] ? (E extends R[number] ? boolean : false) : false;
 };
-export type PromiseOptions<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = ListenerOptions<D, E, C> & {
+export type PromiseOptions<D extends Definition, E extends keyof D, R extends (keyof D)[] | undefined> = ListenerOptions<D, E, R> & {
     timeout?: number;
     reject?: Exclude<keyof D, E>[];
 };
-export type CallbackHandler<D extends Definition, E extends keyof D> = (...parameters: Parameters<D[E]>) => void;
-export type Callback<D extends Definition, E extends keyof D, C extends (keyof D)[] | undefined> = {
-    t: ListenerType;
-    h: CallbackHandler<D, E>;
-    r: number;
-    c: number;
-    o: ListenerOptions<D, E, C>;
+export type ListenerCallback<D extends Definition, E extends keyof D> = (...parameters: Parameters<D[E]>) => void;
+export declare enum ListenerProperty {
+    type = 0,
+    callback = 1,
+    emissions = 2,
+    executions = 3,
+    options = 4
+}
+export type Listener<D extends Definition, E extends keyof D, R extends (keyof D)[] | undefined> = {
+    [ListenerProperty.type]: ListenerType;
+    [ListenerProperty.callback]: ListenerCallback<D, E>;
+    [ListenerProperty.emissions]: number;
+    [ListenerProperty.executions]: number;
+    [ListenerProperty.options]: ListenerOptions<D, E, R>;
 };
-export type Events<D extends Definition, C extends (keyof D)[] | undefined> = {
+export declare enum EventProperty {
+    listeners = 0,
+    parameters = 1,
+    emissions = 2
+}
+export type Events<D extends Definition, R extends (keyof D)[] | undefined> = {
     [E in keyof D]: {
-        c: Callback<D, E, C>[];
-        d: Parameters<D[E]>[];
-        r: number;
+        [EventProperty.listeners]: Listener<D, E, R>[];
+        [EventProperty.parameters]: Parameters<D[E]>[];
+        [EventProperty.emissions]: number;
     };
 };
-export type Awayback<D extends Definition, C extends (keyof D)[] | undefined = undefined> = {
-    events: Events<D, C>;
+export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = undefined> = {
+    events: Events<D, R>;
     emit: <E extends keyof D>(event: E, ...data: Parameters<D[E]>) => void;
-    on: <E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E, C>) => void;
-    once: <E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E, C>) => void;
-    only: <E extends keyof D>(event: E, handler: CallbackHandler<D, E>, options?: ListenerOptions<D, E, C>) => void;
-    promise: <E extends keyof D>(event: E, options?: PromiseOptions<D, E, C>) => Promise<Parameters<D[E]>>;
-    remove: <E extends keyof D>(event: E, handler: CallbackHandler<D, E>) => void;
+    on: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
+    once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
+    only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
+    promise: <E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>) => Promise<Parameters<D[E]>>;
+    remove: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>) => void;
     destroy: () => void;
 };

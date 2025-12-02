@@ -10,10 +10,10 @@ type TestEvents = {
 }
 
 describe('awayback', () => {
-  let events: Awayback<TestEvents>
+  let events: Awayback<TestEvents, ['foo']>
 
   beforeEach(() => {
-    events = awayback<TestEvents>()
+    events = awayback<TestEvents, ['foo']>(['foo'])
   })
 
   it('should only call .only listener if it is the only listener and no previous calls', () => {
@@ -45,16 +45,16 @@ describe('awayback', () => {
     expect(handler2).toHaveBeenCalledWith('err')
   })
 
-  it('should allow registering a listener with isExecutingPrevious during replay', () => {
+  it('should allow registering a listener with isReplaying during replay', () => {
     const calls: string[] = []
     events.emit('foo', 'a')
     events.on(
       'foo',
       () => {
         calls.push('first')
-        events.on('foo', () => calls.push('second'), { isExecutingPrevious: true })
+        events.on('foo', () => calls.push('second'), { isReplaying: true })
       },
-      { isExecutingPrevious: true }
+      { isReplaying: true }
     )
     expect(calls).toEqual(['first', 'second'])
   })
@@ -182,29 +182,29 @@ describe('awayback', () => {
     expect(handler).toHaveBeenCalledWith('before')
   })
 
-  it('should support isExecutingPrevious for .on', () => {
+  it('should support isReplaying for .on', () => {
     const handler = vi.fn()
     events.emit('foo', 'before')
-    events.on('foo', handler, { isExecutingPrevious: true })
+    events.on('foo', handler, { isReplaying: true })
     events.emit('foo', 'after')
     expect(handler).toHaveBeenCalledTimes(2)
     expect(handler).toHaveBeenNthCalledWith(1, 'before')
     expect(handler).toHaveBeenNthCalledWith(2, 'after')
   })
 
-  it('should support isExecutingPrevious for .once', () => {
+  it('should support isReplaying for .once', () => {
     const handler = vi.fn()
     events.emit('foo', 'before')
-    events.once('foo', handler, { isExecutingPrevious: true })
+    events.once('foo', handler, { isReplaying: true })
     events.emit('foo', 'after')
     expect(handler).toHaveBeenCalledTimes(1)
     expect(handler).toHaveBeenCalledWith('before')
   })
 
-  it('should support isExecutingPrevious for .only', () => {
+  it('should support isReplaying for .only', () => {
     const handler = vi.fn()
     events.emit('foo', 'before')
-    events.only('foo', handler, { isExecutingPrevious: true })
+    events.only('foo', handler, { isReplaying: true })
     events.emit('foo', 'after')
     expect(handler).toHaveBeenCalledTimes(1)
     expect(handler).toHaveBeenNthCalledWith(1, 'before')
@@ -377,28 +377,28 @@ describe('awayback', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it('should not call listeners if predicate returns false for isExecutingPrevious', () => {
+  it('should not call listeners if predicate returns false for isReplaying', () => {
     const handler = vi.fn()
     events.emit('foo', 'no')
-    events.on('foo', handler, { isExecutingPrevious: true, predicate: (d) => d === 'yes' })
+    events.on('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
     events.emit('foo', 'yes')
     expect(handler).toHaveBeenCalledTimes(1)
     expect(handler).toHaveBeenCalledWith('yes')
   })
 
-  it('should not call .once listener for isExecutingPrevious if predicate returns false', () => {
+  it('should not call .once listener for isReplaying if predicate returns false', () => {
     const handler = vi.fn()
     events.emit('foo', 'no')
-    events.once('foo', handler, { isExecutingPrevious: true, predicate: (d) => d === 'yes' })
+    events.once('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
     events.emit('foo', 'yes')
     expect(handler).toHaveBeenCalledTimes(1)
     expect(handler).toHaveBeenCalledWith('yes')
   })
 
-  it('should not call .only listener for isExecutingPrevious if predicate returns false', () => {
+  it('should not call .only listener for isReplaying if predicate returns false', () => {
     const handler = vi.fn()
     events.emit('foo', 'no')
-    events.only('foo', handler, { isExecutingPrevious: true, predicate: (d) => d === 'yes' })
+    events.only('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
     events.emit('foo', 'yes')
     expect(handler).toHaveBeenCalledTimes(1)
     expect(handler).toHaveBeenCalledWith('yes')
@@ -422,5 +422,64 @@ describe('awayback', () => {
   it('should not throw if emitting an event that does not exist', () => {
     // @ts-expect-error Testing non-existent event
     expect(() => events.emit('idontexist', 'data')).not.toThrow()
+  })
+
+  it('should replay correctly when some emissions fail predicate', () => {
+    const handler = vi.fn()
+
+    events.emit('foo', 'no')
+    events.emit('foo', 'yes')
+    events.emit('foo', 'no')
+    events.emit('foo', 'yes')
+
+    events.on('foo', handler, {
+      isReplaying: true,
+      predicate: (d) => d === 'yes',
+    })
+
+    expect(handler).toHaveBeenCalledTimes(2)
+    expect(handler).toHaveBeenNthCalledWith(1, 'yes')
+    expect(handler).toHaveBeenNthCalledWith(2, 'yes')
+  })
+
+  it('should not replay events when replay array is not provided', () => {
+    const handler = vi.fn()
+    const emitter = awayback<TestEvents>()
+
+    emitter.emit('foo', 'data1')
+    emitter.emit('foo', 'data2')
+
+    // @ts-expect-error Overwriting the options.
+    emitter.on('foo', handler, { isReplaying: true })
+    expect(handler).not.toHaveBeenCalled()
+
+    emitter.emit('foo', 'data3')
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith('data3')
+  })
+
+  it('should only replay events included in the replay array', () => {
+    const fooHandler = vi.fn()
+    const barHandler = vi.fn()
+
+    const emitter = awayback<TestEvents, ['foo']>(['foo'])
+
+    emitter.emit('foo', 'foo-data')
+    emitter.emit('bar', 1, 2)
+
+    emitter.on('foo', fooHandler, { isReplaying: true })
+    // @ts-expect-error Overwriting the options.
+    emitter.on('bar', barHandler, { isReplaying: true })
+
+    expect(fooHandler).toHaveBeenCalledTimes(1)
+    expect(fooHandler).toHaveBeenCalledWith('foo-data')
+
+    expect(barHandler).not.toHaveBeenCalled()
+
+    emitter.emit('foo', 'foo-data2')
+    emitter.emit('bar', 3, 4)
+
+    expect(fooHandler).toHaveBeenCalledTimes(2)
+    expect(barHandler).toHaveBeenCalledTimes(1)
   })
 })

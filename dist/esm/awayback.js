@@ -1,50 +1,19 @@
-import { merge } from 'lodash-es';
-import { ListenerType, } from './awayback.model.js';
+import { defaults, merge } from 'lodash-es';
+import { EventProperty, ListenerProperty, ListenerType, } from './awayback.model.js';
 import { any } from './helpers.js';
-function awayback(cache) {
+function awayback(replay) {
     const events = {};
     const timeouts = {};
-    function create(event) {
+    function _create(event) {
         events[event] = {
-            c: [],
-            d: [],
-            r: 0,
+            [EventProperty.listeners]: [],
+            [EventProperty.parameters]: [],
+            [EventProperty.emissions]: 0,
         };
     }
-    function emit(event, ...data) {
+    function _listen(type, event, callback, options) {
         if (typeof events[event] === 'undefined')
-            create(event);
-        const self = events[event];
-        if (!self)
-            return;
-        if (typeof data !== 'undefined' && (!Array.isArray(cache) || cache.includes(event))) {
-            self.d.push(data);
-        }
-        self.r += 1;
-        self.c.forEach((callback) => {
-            if (!events[event])
-                return;
-            if (callback.t === ListenerType.on ||
-                (callback.t === ListenerType.once && callback.c === 0) ||
-                (callback.t === ListenerType.only &&
-                    callback.c === 0 &&
-                    self.c.reduce((sum, current) => sum + current.c, 0) === 0)) {
-                callback.r += 1;
-                if (typeof callback.o.predicate === 'function' && !callback.o.predicate(...data))
-                    return;
-                try {
-                    callback.h(...data);
-                }
-                catch (error) {
-                    console.error(`Error occurred in event handler for event "${String(event)}":`, error);
-                }
-                callback.c += 1;
-            }
-        });
-    }
-    function listen(type, event, handler, options) {
-        if (typeof events[event] === 'undefined')
-            create(event);
+            _create(event);
         const self = events[event];
         if (!self)
             return;
@@ -52,39 +21,42 @@ function awayback(cache) {
             if (options.signal.aborted)
                 return;
             options.signal.addEventListener('abort', () => {
-                remove(event, handler);
+                remove(event, callback);
             });
         }
-        self.c.push({
-            h: handler,
-            t: type,
-            r: 0,
-            c: 0,
-            o: merge({ isExecutingPrevious: false }, options ?? {}),
+        self[EventProperty.listeners].push({
+            [ListenerProperty.callback]: callback,
+            [ListenerProperty.type]: type,
+            [ListenerProperty.emissions]: 0,
+            [ListenerProperty.executions]: 0,
+            [ListenerProperty.options]: defaults({}, options, { isReplaying: false }),
         });
-        if (self.r > 0) {
-            self.c.forEach((callback) => {
-                if (!(callback.o.isExecutingPrevious ?? false))
+        if (self[EventProperty.emissions] > 0) {
+            self[EventProperty.listeners].forEach((listener) => {
+                if (!(listener[ListenerProperty.options].isReplaying ?? false))
                     return;
-                while (callback.r < self.r) {
+                while (listener[ListenerProperty.emissions] < self[EventProperty.emissions]) {
                     if (!events[event])
                         break;
-                    if (callback.t === ListenerType.on ||
-                        (callback.t === ListenerType.once && callback.c === 0) ||
-                        (callback.t === ListenerType.only &&
-                            callback.c === 0 &&
-                            self.c.reduce((sum, current) => sum + current.c, 0) === 0)) {
-                        const data = self.d[callback.r];
-                        callback.r += 1;
-                        if (typeof callback.o.predicate === 'function' && !callback.o.predicate(...data))
+                    if (listener[ListenerProperty.type] === ListenerType.on ||
+                        (listener[ListenerProperty.type] === ListenerType.once && listener[ListenerProperty.executions] === 0) ||
+                        (listener[ListenerProperty.type] === ListenerType.only &&
+                            listener[ListenerProperty.executions] === 0 &&
+                            self[EventProperty.listeners].reduce((sum, current) => sum + current[ListenerProperty.executions], 0) ===
+                                0)) {
+                        const data = self[EventProperty.parameters][listener[ListenerProperty.emissions]];
+                        listener[ListenerProperty.emissions] += 1;
+                        if (typeof listener[ListenerProperty.options].predicate === 'function' &&
+                            !listener[ListenerProperty.options].predicate(...data)) {
                             continue;
+                        }
                         try {
-                            callback.h(...data);
+                            listener[ListenerProperty.callback](...data);
                         }
                         catch (error) {
-                            console.error(`Error occurred in event handler for event "${String(event)}":`, error);
+                            console.error(`Error occurred in event callback for event "${String(event)}":`, error);
                         }
-                        callback.c += 1;
+                        listener[ListenerProperty.executions] += 1;
                     }
                     else
                         break;
@@ -92,20 +64,52 @@ function awayback(cache) {
             });
         }
     }
-    function on(event, handler, options) {
-        listen(ListenerType.on, event, handler, options);
+    function emit(event, ...parameters) {
+        if (typeof events[event] === 'undefined')
+            _create(event);
+        const self = events[event];
+        if (!self)
+            return;
+        if (Array.isArray(replay) && replay.includes(event)) {
+            self[EventProperty.parameters].push(parameters);
+        }
+        self[EventProperty.emissions] += 1;
+        self[EventProperty.listeners].forEach((listener) => {
+            if (!events[event])
+                return;
+            if (listener[ListenerProperty.type] === ListenerType.on ||
+                (listener[ListenerProperty.type] === ListenerType.once && listener[ListenerProperty.executions] === 0) ||
+                (listener[ListenerProperty.type] === ListenerType.only &&
+                    listener[ListenerProperty.executions] === 0 &&
+                    self[EventProperty.listeners].reduce((sum, current) => sum + current[ListenerProperty.executions], 0) === 0)) {
+                listener[ListenerProperty.emissions] += 1;
+                if (typeof listener[ListenerProperty.options].predicate === 'function' &&
+                    !listener[ListenerProperty.options].predicate(...parameters))
+                    return;
+                try {
+                    listener[ListenerProperty.callback](...parameters);
+                }
+                catch (error) {
+                    console.error(`Error occurred in event callback for event "${String(event)}":`, error);
+                }
+                listener[ListenerProperty.executions] += 1;
+            }
+        });
     }
-    function once(event, handler, options) {
-        listen(ListenerType.once, event, handler, options);
+    function on(event, callback, options) {
+        _listen(ListenerType.on, event, callback, options);
     }
-    function only(event, handler, options) {
-        listen(ListenerType.only, event, handler, options);
+    function once(event, callback, options) {
+        _listen(ListenerType.once, event, callback, options);
+    }
+    function only(event, callback, options) {
+        _listen(ListenerType.only, event, callback, options);
     }
     function promise(event, options) {
         return new Promise((resolve, reject) => {
             const controller = new AbortController();
             const signal = any(controller.signal, options?.signal);
-            const _options = merge(options, { signal });
+            const _options = merge({}, options, { signal });
             once(event, (...data) => {
                 controller.abort();
                 resolve(data);
@@ -116,7 +120,7 @@ function awayback(cache) {
                         controller.abort();
                         reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`));
                     }, {
-                        isExecutingPrevious: ((cache.includes(current) ? _options.isExecutingPrevious : false)),
+                        isReplaying: ((Array.isArray(replay) && replay.includes(current) ? _options.isReplaying : false)),
                         signal,
                     });
                 });
@@ -138,13 +142,13 @@ function awayback(cache) {
             }
         });
     }
-    function remove(event, handler) {
+    function remove(event, callback) {
         if (typeof events[event] === 'undefined')
             return;
         const self = events[event];
         if (!self)
             return;
-        self.c = self.c.filter((callback) => callback.h !== handler);
+        self[EventProperty.listeners] = self[EventProperty.listeners].filter((listener) => listener[ListenerProperty.callback] !== callback);
     }
     function destroy() {
         Object.keys(timeouts).forEach((id) => {
@@ -166,5 +170,5 @@ function awayback(cache) {
         destroy,
     };
 }
-export { ListenerType };
+export { EventProperty, ListenerProperty, ListenerType };
 export default awayback;

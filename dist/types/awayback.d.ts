@@ -1,12 +1,12 @@
-import { Callback, CallbackHandler, Definition, Events, ListenerOptions, ListenerType, type Awayback } from './awayback.model.js';
+import { Definition, EventProperty, Events, Listener, ListenerCallback, ListenerOptions, ListenerProperty, ListenerType, type Awayback, type PromiseOptions } from './awayback.model.js';
 /**
  * @license
  * awayback
  * Released under MIT license
  * Copyright Luca Raúl Joos
  */
-declare function awayback<D extends Definition>(cache?: undefined): Awayback<D, undefined>;
-declare function awayback<D extends Definition, const C extends (keyof D)[]>(cache: C): Awayback<D, C>;
-export { ListenerType };
-export type { Callback, CallbackHandler, Definition, Events, ListenerOptions };
+declare function awayback<D extends Definition>(replay?: undefined): Awayback<D, undefined>;
+declare function awayback<D extends Definition, const R extends (keyof D)[]>(replay: R): Awayback<D, R>;
+export { EventProperty, ListenerProperty, ListenerType };
+export type { Awayback, Definition, Events, Listener, ListenerCallback, ListenerOptions, PromiseOptions };
 export default awayback;
