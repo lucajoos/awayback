@@ -1,4 +1,4 @@
-# awayback v6.0.1
+# awayback v6.0.2
 
 A custom event system with type-safe events.
 
@@ -33,12 +33,12 @@ const events = awayback()
 
 ## API
 
-### awayback(replay?)
+### awayback(replayable?)
 
 Create a new `awayback` event system instance.
 
-- `replay` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) Optional array of event names to enable replay functionality for specific events. When `undefined` (default), no events support replay.
-- **returns:** `Awayback<D, R>` where `D` is your event definitions and `R` is the replay array type
+- `replayable` [&lt;Array&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) Optional array of event names to enable replay functionality for specific events. When `undefined` (default), no events support replay.
+- **returns:** `Awayback<D, R>` where `D` is your event definitions and `R` is the replayable array type
 
 Event replay allows listeners to receive and process previous event emissions when added with the `isReplaying` option set to `true`. By default, no events are replayed. Specify an array of event names to enable replay functionality for only those events.
 
@@ -59,12 +59,14 @@ events.on(
   },
   { isReplaying: true }
 ) // TypeScript error: isReplaying must be false
+```
 
+```typescript
 // To enable replay, specify which events to track
-const eventsWithReplay = awayback<Events>(['login'])
+const events = awayback<Events, ['login']>(['login'])
 
 // Now isReplaying can be 'true' for 'login' events
-eventsWithReplay.on(
+events.on(
   'login',
   (userId) => {
     console.log(userId)
