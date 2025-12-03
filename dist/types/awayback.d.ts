@@ -5,8 +5,8 @@ import { Definition, EventProperty, Events, Listener, ListenerCallback, Listener
  * Released under MIT license
  * Copyright Luca Raúl Joos
  */
-declare function awayback<D extends Definition>(replay?: undefined): Awayback<D, undefined>;
-declare function awayback<D extends Definition, const R extends (keyof D)[]>(replay: R): Awayback<D, R>;
+declare function awayback<D extends Definition>(replayable?: undefined): Awayback<D, undefined>;
+declare function awayback<D extends Definition, const R extends (keyof D)[]>(replayable: R): Awayback<D, R>;
 export { EventProperty, ListenerProperty, ListenerType };
 export type { Awayback, Definition, Events, Listener, ListenerCallback, ListenerOptions, PromiseOptions };
 export default awayback;

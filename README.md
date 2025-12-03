@@ -1,4 +1,4 @@
-# awayback v6.0.0
+# awayback v6.0.1
 
 A custom event system with type-safe events.
 

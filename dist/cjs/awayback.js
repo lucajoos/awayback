@@ -7,7 +7,7 @@ Object.defineProperty(exports, "EventProperty", { enumerable: true, get: functio
 Object.defineProperty(exports, "ListenerProperty", { enumerable: true, get: function () { return awayback_model_js_1.ListenerProperty; } });
 Object.defineProperty(exports, "ListenerType", { enumerable: true, get: function () { return awayback_model_js_1.ListenerType; } });
 const helpers_js_1 = require("./helpers.js");
-function awayback(replay) {
+function awayback(replayable) {
     const events = {};
     const timeouts = {};
     function _create(event) {
@@ -76,7 +76,7 @@ function awayback(replay) {
         const self = events[event];
         if (!self)
             return;
-        if (Array.isArray(replay) && replay.includes(event)) {
+        if (Array.isArray(replayable) && replayable.includes(event)) {
             self[awayback_model_js_1.EventProperty.parameters].push(parameters);
         }
         self[awayback_model_js_1.EventProperty.emissions] += 1;
@@ -126,7 +126,7 @@ function awayback(replay) {
                         controller.abort();
                         reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`));
                     }, {
-                        isReplaying: ((Array.isArray(replay) && replay.includes(current) ? _options.isReplaying : false)),
+                        isReplaying: ((Array.isArray(replayable) && replayable.includes(current) ? _options.isReplaying : false)),
                         signal,
                     });
                 });

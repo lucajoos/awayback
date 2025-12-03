@@ -19,10 +19,10 @@ import { any } from './helpers.js'
  * Released under MIT license
  * Copyright Luca Raúl Joos
  */
-function awayback<D extends Definition>(replay?: undefined): Awayback<D, undefined>
-function awayback<D extends Definition, const R extends (keyof D)[]>(replay: R): Awayback<D, R>
+function awayback<D extends Definition>(replayable?: undefined): Awayback<D, undefined>
+function awayback<D extends Definition, const R extends (keyof D)[]>(replayable: R): Awayback<D, R>
 function awayback<D extends Definition, const R extends (keyof D)[] | undefined = undefined>(
-  replay?: R
+  replayable?: R
 ): Awayback<D, R> {
   const events: Partial<Events<D, R>> = {}
   const timeouts: Record<string, ReturnType<typeof setTimeout>> = {}
@@ -106,7 +106,7 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     const self = events[event]
     if (!self) return
 
-    if (Array.isArray(replay) && replay.includes(event)) {
+    if (Array.isArray(replayable) && replayable.includes(event)) {
       self[EventProperty.parameters].push(parameters)
     }
 
@@ -178,7 +178,7 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
             },
             {
               isReplaying: <ListenerOptions<D, typeof current, R>['isReplaying']>(
-                (Array.isArray(replay) && replay.includes(current) ? _options.isReplaying : false)
+                (Array.isArray(replayable) && replayable.includes(current) ? _options.isReplaying : false)
               ),
               signal,
             }

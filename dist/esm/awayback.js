@@ -1,7 +1,7 @@
 import { defaults, merge } from 'lodash-es';
 import { EventProperty, ListenerProperty, ListenerType, } from './awayback.model.js';
 import { any } from './helpers.js';
-function awayback(replay) {
+function awayback(replayable) {
     const events = {};
     const timeouts = {};
     function _create(event) {
@@ -70,7 +70,7 @@ function awayback(replay) {
         const self = events[event];
         if (!self)
             return;
-        if (Array.isArray(replay) && replay.includes(event)) {
+        if (Array.isArray(replayable) && replayable.includes(event)) {
             self[EventProperty.parameters].push(parameters);
         }
         self[EventProperty.emissions] += 1;
@@ -120,7 +120,7 @@ function awayback(replay) {
                         controller.abort();
                         reject(new Error(`Event "${String(event)}" was rejected due to "${String(current)}" event.`));
                     }, {
-                        isReplaying: ((Array.isArray(replay) && replay.includes(current) ? _options.isReplaying : false)),
+                        isReplaying: ((Array.isArray(replayable) && replayable.includes(current) ? _options.isReplaying : false)),
                         signal,
                     });
                 });
