@@ -1,4 +1,4 @@
-# awayback v6.0.2
+# awayback v6.0.3
 
 A custom event system with type-safe events.
 
@@ -97,6 +97,32 @@ events.on('logout', () => {}, { isReplaying: false })
 ```
 
 For optimal performance in applications with many events, use the `replay` parameter to restrict replay functionality to only the events that need it. Events not specified in the replay array will not store their historical data, reducing memory usage and improving performance when handling high-frequency events.
+
+### .emit(event, ...data)
+
+- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- `...data` &lt;Any&gt;
+
+Events can be fired using the function `emit`.
+The first required argument is the name of the event, the second, optional one, is data that can be transmitted.
+
+```javascript
+events.emit('name', 'data')
+```
+
+#### Multiple arguments
+
+More than two arguments can be passed on.
+
+```javascript
+// Listen to the event
+events.on('event', (...data) => {
+  console.log(data)
+  // OUTPUT: ['some', 'data']
+})
+
+events.emit('event', 'some', 'data')
+```
 
 ### .on(event, callback, options)
 
@@ -393,32 +419,6 @@ setTimeout(() => {
     }
   )
 }, 1000)
-```
-
-### .emit(event, ...data)
-
-- `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-- `...data` &lt;Any&gt;
-
-Events can be fired using the function `emit`.
-The first required argument is the name of the event, the second, optional one, is data that can be transmitted.
-
-```javascript
-events.emit('name', 'data')
-```
-
-#### Multiple arguments
-
-More than two arguments can be passed on.
-
-```javascript
-// Listen to the event
-events.on('event', (...data) => {
-  console.log(data)
-  // OUTPUT: ['some', 'data']
-})
-
-events.emit('event', 'some', 'data')
 ```
 
 ### .promise(event, options): Promise
