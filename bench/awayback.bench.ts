@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import awayback from '../src/awayback.ts'
+import awayback from '../src/awayback.js'
 
 type Events = {
   ping: (n: number) => void

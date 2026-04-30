@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
     "types": [],
 
+    "rootDir": ".",
     "outDir": "./dist",
 
     "esModuleInterop": true,
@@ -13,5 +14,5 @@
   },
 
   "include": ["src/**/*.ts", "test/**/*.test.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "bench/**/*.ts"]
 }

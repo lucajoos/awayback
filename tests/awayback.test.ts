@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import awayback from '../src/awayback'
-import type { Awayback } from '../src/awayback.model.ts'
+import { Awayback, ListenerProperty } from '../src/models/awayback.model.ts'
 
 type Events = {
   foo: (data: string) => void
@@ -16,470 +16,498 @@ describe('awayback', () => {
     events = awayback<Events, ['foo']>(['foo'])
   })
 
-  it('should only call .only listener if it is the only listener and no previous calls', () => {
-    const handler = vi.fn()
-    events.only('foo', handler)
-    events.emit('foo', 'data1')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('data1')
-    const handler2 = vi.fn()
-    events.only('foo', handler2)
-    events.emit('foo', 'data2')
-    expect(handler2).not.toHaveBeenCalled()
-    const handler3 = vi.fn()
-    events.on('foo', handler3)
-    const handler4 = vi.fn()
-    events.only('foo', handler4)
-    events.emit('foo', 'data3')
-    expect(handler4).not.toHaveBeenCalled()
-    expect(handler3).toHaveBeenCalledWith('data3')
-  })
-  it('should not prevent other listeners if one throws', () => {
-    const handler1 = vi.fn(() => {
-      throw new Error('fail')
+  describe('.listeners', () => {
+    it('should return empty array if no listeners', () => {
+      expect(events.listeners('foo')).toEqual([])
     })
-    const handler2 = vi.fn()
-    events.on('foo', handler1)
-    events.on('foo', handler2)
-    events.emit('foo', 'err')
-    expect(handler2).toHaveBeenCalledWith('err')
-  })
 
-  it('should allow registering a listener with isReplaying during replay', () => {
-    const calls: string[] = []
-    events.emit('foo', 'a')
-    events.on(
-      'foo',
-      () => {
-        calls.push('first')
-        events.on('foo', () => calls.push('second'), { isReplaying: true })
-      },
-      { isReplaying: true }
-    )
-    expect(calls).toEqual(['first', 'second'])
-  })
-
-  it('should only reject .promise once if both timeout and reject event occur', async () => {
-    const p = events.promise('foo', { timeout: 10, reject: ['bar'] })
-    events.emit('bar', 1, 2)
-    await expect(p).rejects.toThrow()
-  })
-
-  it('should not break if predicate throws', () => {
-    const handler = vi.fn()
-    events.on('foo', handler, {
-      predicate: () => {
-        throw new Error('predicate fail')
-      },
-    })
-    expect(() => events.emit('foo', 'x')).toThrow('predicate fail')
-
-    expect(handler).not.toHaveBeenCalled()
-  })
-
-  it('should not call handler if rapidly aborted and emitted', () => {
-    const handler = vi.fn()
-    const controller = new AbortController()
-    events.on('foo', handler, { signal: controller.signal })
-    controller.abort()
-    for (let i = 0; i < 10; i++) {
-      events.emit('foo', 'x')
-    }
-    expect(handler).not.toHaveBeenCalled()
-  })
-
-  it('should stop calling listeners if destroy is called during emit', () => {
-    const handler1 = vi.fn(() => events.destroy())
-    const handler2 = vi.fn()
-    events.on('foo', handler1)
-    events.on('foo', handler2)
-    events.emit('foo', 'x')
-
-    expect(handler1).toHaveBeenCalled()
-    expect(handler2).not.toHaveBeenCalled()
-  })
-
-  it('should support a predicate that changes its return value', () => {
-    let allow = false
-    const handler = vi.fn()
-    events.on('foo', handler, { predicate: () => allow })
-    events.emit('foo', 'a')
-    allow = true
-    events.emit('foo', 'b')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('b')
-  })
-
-  it('should call .on listeners when event is emitted', () => {
-    const handler = vi.fn()
-    events.on('foo', handler)
-    events.emit('foo', 'test')
-    expect(handler).toHaveBeenCalledWith('test')
-  })
-
-  it('should call .once listeners only once', () => {
-    const handler = vi.fn()
-    events.once('foo', handler)
-    events.emit('foo', 'one')
-    events.emit('foo', 'two')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('one')
-  })
-
-  it('should call .only listener only if it is the only one', () => {
-    const handler = vi.fn()
-    events.only('foo', handler)
-    events.emit('foo', 'data')
-    expect(handler).toHaveBeenCalledWith('data')
-  })
-
-  it('should not call .only listener if another listener exists', () => {
-    const handler = vi.fn()
-    const other = vi.fn()
-    events.on('foo', other)
-    events.only('foo', handler)
-    events.emit('foo', 'data')
-    expect(handler).not.toHaveBeenCalled()
-    expect(other).toHaveBeenCalledWith('data')
-  })
-
-  it('should support predicate option for .on', () => {
-    const handler = vi.fn()
-    events.on('foo', handler, { predicate: (data) => data === 'ok' })
-    events.emit('foo', 'fail')
-    events.emit('foo', 'ok')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('ok')
-  })
-
-  it('should support predicate option for .once', () => {
-    const handler = vi.fn()
-    events.once('foo', handler, { predicate: (data) => data === 'ok' })
-    events.emit('foo', 'fail')
-    events.emit('foo', 'ok')
-    events.emit('foo', 'ok')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('ok')
-  })
-
-  it('should support predicate option for .only', () => {
-    const handler = vi.fn()
-    events.only('foo', handler, { predicate: (data) => data === 'ok' })
-    events.emit('foo', 'fail')
-    events.emit('foo', 'ok')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('ok')
-  })
-
-  it('should support AbortSignal for .on', () => {
-    const handler = vi.fn()
-    const controller = new AbortController()
-    events.on('foo', handler, { signal: controller.signal })
-    events.emit('foo', 'before')
-    controller.abort()
-    events.emit('foo', 'after')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('before')
-  })
-
-  it('should support isReplaying for .on', () => {
-    const handler = vi.fn()
-    events.emit('foo', 'before')
-    events.on('foo', handler, { isReplaying: true })
-    events.emit('foo', 'after')
-    expect(handler).toHaveBeenCalledTimes(2)
-    expect(handler).toHaveBeenNthCalledWith(1, 'before')
-    expect(handler).toHaveBeenNthCalledWith(2, 'after')
-  })
-
-  it('should support isReplaying for .once', () => {
-    const handler = vi.fn()
-    events.emit('foo', 'before')
-    events.once('foo', handler, { isReplaying: true })
-    events.emit('foo', 'after')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('before')
-  })
-
-  it('should support isReplaying for .only', () => {
-    const handler = vi.fn()
-    events.emit('foo', 'before')
-    events.only('foo', handler, { isReplaying: true })
-    events.emit('foo', 'after')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenNthCalledWith(1, 'before')
-  })
-
-  it('should remove listeners with .remove', () => {
-    const handler = vi.fn()
-    events.on('foo', handler)
-    events.remove('foo', handler)
-    events.emit('foo', 'data')
-    expect(handler).not.toHaveBeenCalled()
-  })
-
-  it('should allow multiple listeners for the same event and call all', () => {
-    const handler1 = vi.fn()
-    const handler2 = vi.fn()
-    events.on('foo', handler1)
-    events.on('foo', handler2)
-    events.emit('foo', 'multi')
-    expect(handler1).toHaveBeenCalledWith('multi')
-    expect(handler2).toHaveBeenCalledWith('multi')
-  })
-
-  it('should allow removing one of multiple listeners', () => {
-    const handler1 = vi.fn()
-    const handler2 = vi.fn()
-    events.on('foo', handler1)
-    events.on('foo', handler2)
-    events.remove('foo', handler1)
-    events.emit('foo', 'multi')
-    expect(handler1).not.toHaveBeenCalled()
-    expect(handler2).toHaveBeenCalledWith('multi')
-  })
-
-  it('should support nested emits (reentrant emits)', () => {
-    const handler = vi.fn()
-    events.on('foo', (data) => {
-      handler(data)
-      if (data === 'first') {
-        events.emit('foo', 'second')
-      }
-    })
-    events.emit('foo', 'first')
-    expect(handler).toHaveBeenNthCalledWith(1, 'first')
-    expect(handler).toHaveBeenNthCalledWith(2, 'second')
-    expect(handler).toHaveBeenCalledTimes(2)
-  })
-
-  it('should support listeners for different events independently', () => {
-    const fooHandler = vi.fn()
-    const barHandler = vi.fn()
-    events.on('foo', fooHandler)
-    events.on('bar', barHandler)
-    events.emit('foo', 'f')
-    events.emit('bar', 1, 2)
-    expect(fooHandler).toHaveBeenCalledWith('f')
-    expect(barHandler).toHaveBeenCalledWith(1, 2)
-  })
-
-  it('should not leak listeners after destroy', () => {
-    const handler = vi.fn()
-    events.on('foo', handler)
-    events.destroy()
-    events.emit('foo', 'data')
-    expect(handler).not.toHaveBeenCalled()
-  })
-
-  it('should support multiple abort signals for a listener (any aborts)', () => {
-    const handler = vi.fn()
-    const c1 = new AbortController()
-    const c2 = new AbortController()
-    events.on('foo', handler, { signal: c1.signal })
-    events.on('foo', handler, { signal: c2.signal })
-    events.emit('foo', 'before')
-    c1.abort()
-    events.emit('foo', 'after')
-    c2.abort()
-    events.emit('foo', 'final')
-
-    expect(handler).toHaveBeenCalledTimes(2)
-    expect(handler).toHaveBeenNthCalledWith(2, 'before')
-    expect(handler).not.toHaveBeenCalledWith('after')
-    expect(handler).not.toHaveBeenCalledWith(0, 'final')
-  })
-
-  it('should support listeners with complex predicates', () => {
-    const handler = vi.fn()
-    events.on('bar', handler, { predicate: (x, y) => x + y > 10 })
-    events.emit('bar', 3, 4)
-    events.emit('bar', 6, 6)
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(6, 6)
-  })
-
-  it('should support listeners that remove themselves', () => {
-    const handler = vi.fn(() => events.remove('foo', handler))
-    events.on('foo', handler)
-    events.emit('foo', 'a')
-    events.emit('foo', 'b')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('a')
-  })
-
-  it('should support listeners that add new listeners during emit', () => {
-    const handler1 = vi.fn()
-    const handler2 = vi.fn()
-    events.on('foo', () => {
-      handler1()
+    it('should return all listeners for event', () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+      events.on('foo', handler1)
       events.on('foo', handler2)
-    })
-    events.emit('foo', 'x')
-    events.emit('foo', 'y')
-    expect(handler1).toHaveBeenCalledTimes(2)
-    expect(handler2).toHaveBeenCalledTimes(1)
-  })
-
-  it('should clear all listeners and timeouts with .destroy', () => {
-    const handler = vi.fn()
-    events.on('foo', handler)
-    events.emit('foo', 'data')
-    events.destroy()
-    events.emit('foo', 'data2')
-    expect(handler).toHaveBeenCalledTimes(1)
-  })
-
-  it('should support .promise resolving on event', async () => {
-    const p = events.promise('foo')
-    events.emit('foo', 'data')
-    await expect(p).resolves.toEqual(['data'])
-  })
-
-  it('should support .promise rejecting on timeout', async () => {
-    const p = events.promise('foo', { timeout: 10 })
-    await expect(p).rejects.toThrow(/timeout/)
-  })
-
-  it('should support .promise rejecting on reject event', async () => {
-    const p = events.promise('foo', { reject: ['bar'] })
-    events.emit('bar', 1, 2)
-    await expect(p).rejects.toThrowError()
-  })
-
-  it('should pass all arguments to listeners', () => {
-    const handler = vi.fn()
-    events.on('bar', handler)
-    events.emit('bar', 1, 2)
-    expect(handler).toHaveBeenCalledWith(1, 2)
-  })
-
-  it('should support array arguments', () => {
-    const handler = vi.fn()
-    events.on('arr', handler)
-    events.emit('arr', ['a', 'b'])
-    expect(handler).toHaveBeenCalledWith(['a', 'b'])
-  })
-
-  it('should support no-argument events', () => {
-    const handler = vi.fn()
-    events.on('noargs', handler)
-    events.emit('noargs')
-    expect(handler).toHaveBeenCalled()
-  })
-
-  it('should not call listeners after AbortSignal is aborted before registration', () => {
-    const handler = vi.fn()
-    const controller = new AbortController()
-    controller.abort()
-    events.on('foo', handler, { signal: controller.signal })
-    events.emit('foo', 'data')
-    expect(handler).not.toHaveBeenCalled()
-  })
-
-  it('should not call listeners if predicate returns false for isReplaying', () => {
-    const handler = vi.fn()
-    events.emit('foo', 'no')
-    events.on('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
-    events.emit('foo', 'yes')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('yes')
-  })
-
-  it('should not call .once listener for isReplaying if predicate returns false', () => {
-    const handler = vi.fn()
-    events.emit('foo', 'no')
-    events.once('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
-    events.emit('foo', 'yes')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('yes')
-  })
-
-  it('should not call .only listener for isReplaying if predicate returns false', () => {
-    const handler = vi.fn()
-    events.emit('foo', 'no')
-    events.only('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
-    events.emit('foo', 'yes')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('yes')
-  })
-
-  it('should not call .only if another listener has already been called', () => {
-    const handler = vi.fn()
-    const other = vi.fn()
-    events.on('foo', other)
-    events.emit('foo', 'data')
-    events.only('foo', handler)
-    events.emit('foo', 'data2')
-    expect(handler).not.toHaveBeenCalled()
-    expect(other).toHaveBeenCalledWith('data')
-  })
-
-  it('should not throw if removing a handler from an event that does not exist', () => {
-    expect(() => events.remove('foo', () => {})).not.toThrow()
-  })
-
-  it('should not throw if emitting an event that does not exist', () => {
-    // @ts-expect-error Testing non-existent event
-    expect(() => events.emit('idontexist', 'data')).not.toThrow()
-  })
-
-  it('should replay correctly when some emissions fail predicate', () => {
-    const handler = vi.fn()
-
-    events.emit('foo', 'no')
-    events.emit('foo', 'yes')
-    events.emit('foo', 'no')
-    events.emit('foo', 'yes')
-
-    events.on('foo', handler, {
-      isReplaying: true,
-      predicate: (d) => d === 'yes',
+      const listeners = events.listeners('foo')
+      expect(listeners.length).toBe(2)
+      expect(listeners.some((l) => l[ListenerProperty.callback] === handler1)).toBe(true)
+      expect(listeners.some((l) => l[ListenerProperty.callback] === handler2)).toBe(true)
     })
 
-    expect(handler).toHaveBeenCalledTimes(2)
-    expect(handler).toHaveBeenNthCalledWith(1, 'yes')
-    expect(handler).toHaveBeenNthCalledWith(2, 'yes')
+    it('should return empty array for unknown event', () => {
+      // @ts-expect-error Testing non-existent event
+      expect(events.listeners('idontexist')).toEqual([])
+    })
   })
 
-  it('should not replay events when replay array is not provided', () => {
-    const handler = vi.fn()
-    const emitter = awayback<Events>()
+  describe('.emit', () => {
+    it('should call .on listeners when event is emitted', () => {
+      const handler = vi.fn()
+      events.on('foo', handler)
+      events.emit('foo', 'test')
+      expect(handler).toHaveBeenCalledWith('test')
+    })
 
-    emitter.emit('foo', 'data1')
-    emitter.emit('foo', 'data2')
+    it('should pass all arguments to listeners', () => {
+      const handler = vi.fn()
+      events.on('bar', handler)
+      events.emit('bar', 1, 2)
+      expect(handler).toHaveBeenCalledWith(1, 2)
+    })
 
-    // @ts-expect-error Overwriting the options.
-    emitter.on('foo', handler, { isReplaying: true })
-    expect(handler).not.toHaveBeenCalled()
+    it('should support array arguments', () => {
+      const handler = vi.fn()
+      events.on('arr', handler)
+      events.emit('arr', ['a', 'b'])
+      expect(handler).toHaveBeenCalledWith(['a', 'b'])
+    })
 
-    emitter.emit('foo', 'data3')
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith('data3')
+    it('should support no-argument events', () => {
+      const handler = vi.fn()
+      events.on('noargs', handler)
+      events.emit('noargs')
+      expect(handler).toHaveBeenCalled()
+    })
+
+    it('should allow multiple listeners for the same event and call all', () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+      events.on('foo', handler1)
+      events.on('foo', handler2)
+      events.emit('foo', 'multi')
+      expect(handler1).toHaveBeenCalledWith('multi')
+      expect(handler2).toHaveBeenCalledWith('multi')
+    })
+
+    it('should support listeners for different events independently', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+      events.on('foo', fooHandler)
+      events.on('bar', barHandler)
+      events.emit('foo', 'f')
+      events.emit('bar', 1, 2)
+      expect(fooHandler).toHaveBeenCalledWith('f')
+      expect(barHandler).toHaveBeenCalledWith(1, 2)
+    })
+
+    it('should not prevent other listeners if one throws', () => {
+      const handler1 = vi.fn(() => {
+        throw new Error('fail')
+      })
+      const handler2 = vi.fn()
+      events.on('foo', handler1)
+      events.on('foo', handler2)
+      events.emit('foo', 'err')
+      expect(handler2).toHaveBeenCalledWith('err')
+    })
+
+    it('should not throw if emitting an event that does not exist', () => {
+      // @ts-expect-error Testing non-existent event
+      expect(() => events.emit('idontexist', 'data')).not.toThrow()
+    })
+
+    it('should support nested emits (reentrant emits)', () => {
+      const handler = vi.fn()
+      events.on('foo', (data) => {
+        handler(data)
+        if (data === 'first') {
+          events.emit('foo', 'second')
+        }
+      })
+      events.emit('foo', 'first')
+      expect(handler).toHaveBeenNthCalledWith(1, 'first')
+      expect(handler).toHaveBeenNthCalledWith(2, 'second')
+      expect(handler).toHaveBeenCalledTimes(2)
+    })
+
+    it('should stop calling listeners if destroy is called during emit', () => {
+      const handler1 = vi.fn(() => events.destroy())
+      const handler2 = vi.fn()
+      events.on('foo', handler1)
+      events.on('foo', handler2)
+      events.emit('foo', 'x')
+      expect(handler1).toHaveBeenCalled()
+      expect(handler2).not.toHaveBeenCalled()
+    })
   })
 
-  it('should only replay events included in the replay array', () => {
-    const fooHandler = vi.fn()
-    const barHandler = vi.fn()
+  describe('.on / .remove', () => {
+    it('should remove listeners with .remove', () => {
+      const handler = vi.fn()
+      events.on('foo', handler)
+      events.remove('foo', handler)
+      events.emit('foo', 'data')
+      expect(handler).not.toHaveBeenCalled()
+    })
 
-    const emitter = awayback<Events, ['foo']>(['foo'])
+    it('should allow removing one of multiple listeners', () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+      events.on('foo', handler1)
+      events.on('foo', handler2)
+      events.remove('foo', handler1)
+      events.emit('foo', 'multi')
+      expect(handler1).not.toHaveBeenCalled()
+      expect(handler2).toHaveBeenCalledWith('multi')
+    })
 
-    emitter.emit('foo', 'foo-data')
-    emitter.emit('bar', 1, 2)
+    it('should support listeners that remove themselves', () => {
+      const handler = vi.fn(() => events.remove('foo', handler))
+      events.on('foo', handler)
+      events.emit('foo', 'a')
+      events.emit('foo', 'b')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('a')
+    })
 
-    emitter.on('foo', fooHandler, { isReplaying: true })
-    // @ts-expect-error Overwriting the options.
-    emitter.on('bar', barHandler, { isReplaying: true })
+    it('should support listeners that add new listeners during emit', () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+      events.on('foo', () => {
+        handler1()
+        events.on('foo', handler2)
+      })
+      events.emit('foo', 'x')
+      events.emit('foo', 'y')
+      expect(handler1).toHaveBeenCalledTimes(2)
+      expect(handler2).toHaveBeenCalledTimes(1)
+    })
 
-    expect(fooHandler).toHaveBeenCalledTimes(1)
-    expect(fooHandler).toHaveBeenCalledWith('foo-data')
+    it('should not throw if removing a handler from an event that does not exist', () => {
+      expect(() => events.remove('foo', () => {})).not.toThrow()
+    })
+  })
 
-    expect(barHandler).not.toHaveBeenCalled()
+  describe('.once', () => {
+    it('should call .once listeners only once', () => {
+      const handler = vi.fn()
+      events.once('foo', handler)
+      events.emit('foo', 'one')
+      events.emit('foo', 'two')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('one')
+    })
+  })
 
-    emitter.emit('foo', 'foo-data2')
-    emitter.emit('bar', 3, 4)
+  describe('.only', () => {
+    it('should call .only listener only if it is the only one', () => {
+      const handler = vi.fn()
+      events.only('foo', handler)
+      events.emit('foo', 'data')
+      expect(handler).toHaveBeenCalledWith('data')
+    })
 
-    expect(fooHandler).toHaveBeenCalledTimes(2)
-    expect(barHandler).toHaveBeenCalledTimes(1)
+    it('should not call .only listener if another listener exists', () => {
+      const handler = vi.fn()
+      const other = vi.fn()
+      events.on('foo', other)
+      events.only('foo', handler)
+      events.emit('foo', 'data')
+      expect(handler).not.toHaveBeenCalled()
+      expect(other).toHaveBeenCalledWith('data')
+    })
+
+    it('should not call .only if another listener has already been called', () => {
+      const handler = vi.fn()
+      const other = vi.fn()
+      events.on('foo', other)
+      events.emit('foo', 'data')
+      events.only('foo', handler)
+      events.emit('foo', 'data2')
+      expect(handler).not.toHaveBeenCalled()
+      expect(other).toHaveBeenCalledWith('data')
+    })
+
+    it('should only call .only listener if it is the only listener and no previous calls', () => {
+      const handler = vi.fn()
+      events.only('foo', handler)
+      events.emit('foo', 'data1')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('data1')
+
+      const handler2 = vi.fn()
+      events.only('foo', handler2)
+      events.emit('foo', 'data2')
+      expect(handler2).not.toHaveBeenCalled()
+
+      const handler3 = vi.fn()
+      events.on('foo', handler3)
+      const handler4 = vi.fn()
+      events.only('foo', handler4)
+      events.emit('foo', 'data3')
+      expect(handler4).not.toHaveBeenCalled()
+      expect(handler3).toHaveBeenCalledWith('data3')
+    })
+  })
+
+  describe('predicate option', () => {
+    it('should support predicate option for .on', () => {
+      const handler = vi.fn()
+      events.on('foo', handler, { predicate: (data) => data === 'ok' })
+      events.emit('foo', 'fail')
+      events.emit('foo', 'ok')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('ok')
+    })
+
+    it('should support predicate option for .once', () => {
+      const handler = vi.fn()
+      events.once('foo', handler, { predicate: (data) => data === 'ok' })
+      events.emit('foo', 'fail')
+      events.emit('foo', 'ok')
+      events.emit('foo', 'ok')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('ok')
+    })
+
+    it('should support predicate option for .only', () => {
+      const handler = vi.fn()
+      events.only('foo', handler, { predicate: (data) => data === 'ok' })
+      events.emit('foo', 'fail')
+      events.emit('foo', 'ok')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('ok')
+    })
+
+    it('should support a predicate that changes its return value', () => {
+      let allow = false
+      const handler = vi.fn()
+      events.on('foo', handler, { predicate: () => allow })
+      events.emit('foo', 'a')
+      allow = true
+      events.emit('foo', 'b')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('b')
+    })
+
+    it('should support listeners with complex predicates', () => {
+      const handler = vi.fn()
+      events.on('bar', handler, { predicate: (x, y) => x + y > 10 })
+      events.emit('bar', 3, 4)
+      events.emit('bar', 6, 6)
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith(6, 6)
+    })
+
+    it('should not break if predicate throws', () => {
+      const handler = vi.fn()
+      events.on('foo', handler, {
+        predicate: () => {
+          throw new Error('predicate fail')
+        },
+      })
+      expect(() => events.emit('foo', 'x')).toThrow('predicate fail')
+      expect(handler).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('signal (AbortSignal) option', () => {
+    it('should support AbortSignal for .on', () => {
+      const handler = vi.fn()
+      const controller = new AbortController()
+      events.on('foo', handler, { signal: controller.signal })
+      events.emit('foo', 'before')
+      controller.abort()
+      events.emit('foo', 'after')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('before')
+    })
+
+    it('should not call listeners after AbortSignal is aborted before registration', () => {
+      const handler = vi.fn()
+      const controller = new AbortController()
+      controller.abort()
+      events.on('foo', handler, { signal: controller.signal })
+      events.emit('foo', 'data')
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('should not call handler if rapidly aborted and emitted', () => {
+      const handler = vi.fn()
+      const controller = new AbortController()
+      events.on('foo', handler, { signal: controller.signal })
+      controller.abort()
+      for (let i = 0; i < 10; i++) {
+        events.emit('foo', 'x')
+      }
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('should support multiple abort signals for a listener (any aborts)', () => {
+      const handler = vi.fn()
+      const c1 = new AbortController()
+      const c2 = new AbortController()
+      events.on('foo', handler, { signal: c1.signal })
+      events.on('foo', handler, { signal: c2.signal })
+      events.emit('foo', 'before')
+      c1.abort()
+      events.emit('foo', 'after')
+      c2.abort()
+      events.emit('foo', 'final')
+
+      expect(handler).toHaveBeenCalledTimes(2)
+      expect(handler).toHaveBeenNthCalledWith(2, 'before')
+      expect(handler).not.toHaveBeenCalledWith('after')
+      expect(handler).not.toHaveBeenCalledWith(0, 'final')
+    })
+  })
+
+  describe('isReplaying option', () => {
+    it('should support isReplaying for .on', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'before')
+      events.on('foo', handler, { isReplaying: true })
+      events.emit('foo', 'after')
+      expect(handler).toHaveBeenCalledTimes(2)
+      expect(handler).toHaveBeenNthCalledWith(1, 'before')
+      expect(handler).toHaveBeenNthCalledWith(2, 'after')
+    })
+
+    it('should support isReplaying for .once', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'before')
+      events.once('foo', handler, { isReplaying: true })
+      events.emit('foo', 'after')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('before')
+    })
+
+    it('should support isReplaying for .only', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'before')
+      events.only('foo', handler, { isReplaying: true })
+      events.emit('foo', 'after')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenNthCalledWith(1, 'before')
+    })
+
+    it('should not call listeners if predicate returns false for isReplaying', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'no')
+      events.on('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
+      events.emit('foo', 'yes')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('yes')
+    })
+
+    it('should not call .once listener for isReplaying if predicate returns false', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'no')
+      events.once('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
+      events.emit('foo', 'yes')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('yes')
+    })
+
+    it('should not call .only listener for isReplaying if predicate returns false', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'no')
+      events.only('foo', handler, { isReplaying: true, predicate: (d) => d === 'yes' })
+      events.emit('foo', 'yes')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('yes')
+    })
+
+    it('should replay correctly when some emissions fail predicate', () => {
+      const handler = vi.fn()
+      events.emit('foo', 'no')
+      events.emit('foo', 'yes')
+      events.emit('foo', 'no')
+      events.emit('foo', 'yes')
+      events.on('foo', handler, {
+        isReplaying: true,
+        predicate: (d) => d === 'yes',
+      })
+      expect(handler).toHaveBeenCalledTimes(2)
+      expect(handler).toHaveBeenNthCalledWith(1, 'yes')
+      expect(handler).toHaveBeenNthCalledWith(2, 'yes')
+    })
+
+    it('should not replay events when replay array is not provided', () => {
+      const handler = vi.fn()
+      const emitter = awayback<Events>()
+      emitter.emit('foo', 'data1')
+      emitter.emit('foo', 'data2')
+      // @ts-expect-error Overwriting the options.
+      emitter.on('foo', handler, { isReplaying: true })
+      expect(handler).not.toHaveBeenCalled()
+      emitter.emit('foo', 'data3')
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith('data3')
+    })
+
+    it('should only replay events included in the replay array', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+      const emitter = awayback<Events, ['foo']>(['foo'])
+      emitter.emit('foo', 'foo-data')
+      emitter.emit('bar', 1, 2)
+      emitter.on('foo', fooHandler, { isReplaying: true })
+      // @ts-expect-error Overwriting the options.
+      emitter.on('bar', barHandler, { isReplaying: true })
+      expect(fooHandler).toHaveBeenCalledTimes(1)
+      expect(fooHandler).toHaveBeenCalledWith('foo-data')
+      expect(barHandler).not.toHaveBeenCalled()
+      emitter.emit('foo', 'foo-data2')
+      emitter.emit('bar', 3, 4)
+      expect(fooHandler).toHaveBeenCalledTimes(2)
+      expect(barHandler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should allow registering a listener with isReplaying during replay', () => {
+      const calls: string[] = []
+      events.emit('foo', 'a')
+      events.on(
+        'foo',
+        () => {
+          calls.push('first')
+          events.on('foo', () => calls.push('second'), { isReplaying: true })
+        },
+        { isReplaying: true }
+      )
+      expect(calls).toEqual(['first', 'second'])
+    })
+  })
+
+  describe('.promise', () => {
+    it('should support .promise resolving on event', async () => {
+      const p = events.promise('foo')
+      events.emit('foo', 'data')
+      await expect(p).resolves.toEqual(['data'])
+    })
+
+    it('should support .promise rejecting on timeout', async () => {
+      const p = events.promise('foo', { timeout: 10 })
+      await expect(p).rejects.toThrow(/timeout/)
+    })
+
+    it('should support .promise rejecting on reject event', async () => {
+      const p = events.promise('foo', { reject: ['bar'] })
+      events.emit('bar', 1, 2)
+      await expect(p).rejects.toThrowError()
+    })
+
+    it('should only reject .promise once if both timeout and reject event occur', async () => {
+      const p = events.promise('foo', { timeout: 10, reject: ['bar'] })
+      events.emit('bar', 1, 2)
+      await expect(p).rejects.toThrow()
+    })
+  })
+
+  describe('.destroy', () => {
+    it('should not leak listeners after destroy', () => {
+      const handler = vi.fn()
+      events.on('foo', handler)
+      events.destroy()
+      events.emit('foo', 'data')
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('should clear all listeners and timeouts with .destroy', () => {
+      const handler = vi.fn()
+      events.on('foo', handler)
+      events.emit('foo', 'data')
+      events.destroy()
+      events.emit('foo', 'data2')
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
   })
 })

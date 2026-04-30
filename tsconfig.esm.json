@@ -2,6 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/esm",
-    "module": "ES2020"
+    "module": "ES2022"
   }
 }

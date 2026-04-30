@@ -1,4 +1,5 @@
 import { defaults, merge } from 'lodash-es'
+import { any } from './helpers.js'
 import {
   Definition,
   EventProperty,
@@ -10,8 +11,7 @@ import {
   ListenerType,
   type Awayback,
   type PromiseOptions,
-} from './awayback.model.js'
-import { any } from './helpers.js'
+} from './models/awayback.model.js'
 
 /**
  * @license
@@ -215,6 +215,15 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     )
   }
 
+  function listeners<E extends keyof D>(event: E): Listener<D, E, R>[] {
+    if (typeof events[event] === 'undefined') return []
+
+    const self = events[event]
+    if (!self) return []
+
+    return self[EventProperty.listeners]
+  }
+
   function destroy() {
     Object.keys(timeouts).forEach((id) => {
       clearTimeout(timeouts[id])
@@ -233,6 +242,7 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     only,
     promise,
     remove,
+    listeners,
     destroy,
   }
 }
