@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import awayback from '../src/awayback'
-import { Awayback, ListenerProperty } from '../src/awayback.model.ts'
+import { Awayback, ListenerProperty, ListenerType } from '../src/awayback.model.ts'
 
 type Events = {
   foo: (data: string) => void
@@ -567,6 +567,110 @@ describe('awayback', () => {
       events.destroy()
       events.emit('foo', 'data2')
       expect(handler).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('.bind', () => {
+    it('should bind multiple event listeners with default type "on"', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+
+      events.bind({
+        foo: fooHandler,
+        bar: barHandler,
+      })
+
+      events.emit('foo', 'test1')
+      events.emit('foo', 'test2')
+      events.emit('bar', 1, 2)
+
+      expect(fooHandler).toHaveBeenCalledTimes(2)
+      expect(barHandler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should respect specific listener types mapped by event name', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+
+      events.bind(
+        {
+          foo: fooHandler,
+          bar: barHandler,
+        },
+        {
+          foo: ListenerType.once,
+        }
+      )
+
+      events.emit('foo', 'test1')
+      events.emit('foo', 'test2') // Should not trigger fooHandler (once)
+      events.emit('bar', 1, 2)
+      events.emit('bar', 3, 4) // Should trigger barHandler (default is 'on')
+
+      expect(fooHandler).toHaveBeenCalledTimes(1)
+      expect(fooHandler).toHaveBeenCalledWith('test1')
+      expect(barHandler).toHaveBeenCalledTimes(2)
+    })
+
+    it('should respect the wildcard "*" for fallback listener types', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+
+      events.bind(
+        {
+          foo: fooHandler,
+          bar: barHandler,
+        },
+        {
+          '*': ListenerType.once,
+        }
+      )
+
+      events.emit('foo', 'test1')
+      events.emit('foo', 'test2')
+      events.emit('bar', 1, 2)
+      events.emit('bar', 3, 4)
+
+      expect(fooHandler).toHaveBeenCalledTimes(1)
+      expect(barHandler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should merge specific event options with wildcard "*" fallback options', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+
+      events.bind(
+        {
+          foo: fooHandler,
+          bar: barHandler,
+        },
+        undefined,
+        {
+          foo: { predicate: (data) => data === 'allow' },
+          '*': { predicate: () => false }, // Blocks everything by default
+        }
+      )
+
+      events.emit('foo', 'block') // Fails specific predicate
+      events.emit('foo', 'allow') // Passes specific predicate
+      events.emit('bar', 1, 2) // Fails wildcard predicate
+
+      expect(fooHandler).toHaveBeenCalledTimes(1)
+      expect(fooHandler).toHaveBeenCalledWith('allow')
+      expect(barHandler).not.toHaveBeenCalled()
+    })
+
+    it('should handle undefined callback values safely', () => {
+      const fooHandler = vi.fn()
+
+      events.bind({
+        foo: fooHandler,
+        bar: undefined,
+      })
+
+      events.emit('foo', 'test')
+      expect(fooHandler).toHaveBeenCalledTimes(1)
+      // If it doesn't crash, the test passes
     })
   })
 })

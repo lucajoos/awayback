@@ -156,6 +156,32 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     _listen(ListenerType.only, event, callback, options)
   }
 
+  function bind(
+    events: Partial<{
+      [E in keyof D]: ListenerCallback<D, E>
+    }>,
+    types?: Partial<{
+      [E in keyof D]: ListenerType
+    }> & {
+      '*'?: ListenerType
+    },
+    options?: Partial<{
+      [E in keyof D]: ListenerOptions<D, E, R>
+    }> & {
+      '*'?: ListenerOptions<D, keyof D, R>
+    }
+  ) {
+    ;(Object.keys(events) as (keyof D)[]).forEach((event) => {
+      const callback = events[event]
+      if (!callback) return
+
+      const type = types?.[event] ?? types?.['*'] ?? ListenerType.on
+      const _options = defaults({}, options?.[event], options?.['*'])
+
+      _listen(type, event, callback, _options)
+    })
+  }
+
   function promise<E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>): Promise<Parameters<D[E]>> {
     return new Promise((resolve, reject) => {
       const controller = new AbortController()
@@ -244,6 +270,7 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     on,
     once,
     only,
+    bind,
     promise,
     remove,
     listeners,

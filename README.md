@@ -438,6 +438,44 @@ setTimeout(() => {
 }, 1000)
 ```
 
+### .bind(events, types, options)
+
+- `events` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - Key-value pairs of event names and their corresponding `callback` functions.
+- `types` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) (Optional)
+  - Key-value pairs of event names and their corresponding `ListenerType` (`on`, `once`, `only`).
+  - Use the wildcard key `'*'` to define a default type for all bound events.
+- `options` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) (Optional)
+  - Key-value pairs of event names and their corresponding `ListenerOptions`.
+  - Use the wildcard key `'*'` to define default options for all bound events.
+
+Binds multiple event listeners simultaneously. This is a highly efficient way to register a group of related listeners, configure their listener types, and pass shared or specific options all at once.
+
+````javascript
+import { ListenerType } from 'awayback'
+
+// Basic binding
+events.bind({
+  login: (userId) => console.log('Logged in:', userId),
+  logout: (userId) => console.log('Logged out:', userId)
+})
+
+// Binding with specific types and wildcard defaults
+events.bind(
+  {
+    ready: () => console.log('App ready!'),
+    error: (err) => console.error('App error:', err),
+    update: (data) => console.log('App updated:', data)
+  },
+  {
+    ready: ListenerType.once, // 'ready' will only execute once
+    '*': ListenerType.on      // All others will execute normally (default)
+  },
+  {
+    '*': { isDistinct: true } // Applies `isDistinct: true` to all bound events
+  }
+)
+
 ### .promise(event, options): Promise
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -464,7 +502,7 @@ const result = await events.promise('ready')
 
 console.log(result)
 // OUTPUT: ['some', 'data']
-```
+````
 
 If the `predicate` option is provided, the promise will only be resolved if the predicate function returns true.
 

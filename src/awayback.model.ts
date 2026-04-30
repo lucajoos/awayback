@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Definition = { [key: string]: (...parameters: any[]) => void }
+export type Definition = { [key: string]: (...parameters: any[]) => void } & {
+  '*'?: never
+}
 
 export enum ListenerType {
   on = 0b00,
@@ -61,6 +63,25 @@ export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = u
   once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void
   only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void
   promise: <E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>) => Promise<Parameters<D[E]>>
+  bind: (
+    events: Partial<{
+      [E in keyof D]: ListenerCallback<D, E>
+    }>,
+    types?:
+      | (Partial<{
+          [E in keyof D]: ListenerType
+        }> & {
+          '*'?: ListenerType
+        })
+      | undefined,
+    options?:
+      | (Partial<{
+          [E in keyof D]: ListenerOptions<D, E, R>
+        }> & {
+          '*'?: ListenerOptions<D, keyof D, R>
+        })
+      | undefined
+  ) => void
   remove: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>) => void
   listeners: <E extends keyof D>(event: E) => Readonly<Listener<D, E, R>>[]
   destroy: () => void
