@@ -11,6 +11,7 @@ export type ListenerOptions<D extends Definition, E extends keyof D, R extends (
   predicate?: (...parameters: Parameters<D[E]>) => boolean
   signal?: AbortSignal
   isReplaying?: R extends (keyof D)[] ? (E extends R[number] ? boolean : false) : false
+  isDistinct?: boolean
 }
 
 export type PromiseOptions<

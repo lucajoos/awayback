@@ -46,6 +46,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     const self = events[event]
     if (!self) return
 
+    if (options?.isDistinct) {
+      if (self[EventProperty.listeners].some((listener) => listener[ListenerProperty.callback] === callback)) return
+    }
+
     if (options?.signal) {
       if (options.signal.aborted) return
 

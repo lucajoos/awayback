@@ -467,6 +467,65 @@ describe('awayback', () => {
     })
   })
 
+  describe('isDistinct option', () => {
+    it('should only add listener once if isDistinct is true for both listeners', () => {
+      const handler = vi.fn()
+      events.on('foo', handler, { isDistinct: true })
+      events.on('foo', handler, { isDistinct: true })
+      events.emit('foo', 'unique')
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should only add listener once if isDistinct is true for second listener', () => {
+      const handler = vi.fn()
+      events.on('foo', handler, { isDistinct: false })
+      events.on('foo', handler, { isDistinct: true })
+      events.emit('foo', 'unique')
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should add two listener if isDistinct is false for second listener', () => {
+      const handler = vi.fn()
+      events.on('foo', handler, { isDistinct: true })
+      events.on('foo', handler, { isDistinct: false })
+      events.emit('foo', 'unique')
+      expect(handler).toHaveBeenCalledTimes(2)
+    })
+
+    it('should allow duplicate listeners if isDistinct is false or undefined', () => {
+      const handler = vi.fn()
+      events.on('foo', handler)
+      events.on('foo', handler)
+      events.emit('foo', 'dup')
+      expect(handler).toHaveBeenCalledTimes(2)
+    })
+
+    it('should only add once listener once if isDistinct is true', () => {
+      const handler = vi.fn()
+      events.once('foo', handler, { isDistinct: true })
+      events.once('foo', handler, { isDistinct: true })
+      events.emit('foo', 'once')
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should only add only-listener once if isDistinct is true', () => {
+      const handler = vi.fn()
+      events.only('foo', handler, { isDistinct: true })
+      events.only('foo', handler, { isDistinct: true })
+      events.emit('foo', 'only')
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
+
+    it('should only dedupe per event', () => {
+      const handler = vi.fn()
+      events.on('foo', handler, { isDistinct: true })
+      events.on('bar', handler, { isDistinct: true })
+      events.emit('foo', 'f')
+      events.emit('bar', 1, 2)
+      expect(handler).toHaveBeenCalledTimes(2)
+    })
+  })
+
   describe('.promise', () => {
     it('should support .promise resolving on event', async () => {
       const p = events.promise('foo')
