@@ -41,12 +41,27 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     }
   }
 
+  function remove<E extends keyof D>(event: E, callback: ListenerCallback<D, E>) {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
+    if (typeof events[event] === 'undefined') return
+
+    const self = events[event]
+    if (!self) return
+
+    self[EventProperty.listeners] = self[EventProperty.listeners].filter(
+      (listener) => listener[ListenerProperty.callback] !== callback
+    )
+  }
+
   function _listen<E extends keyof D>(
     type: ListenerType,
     event: E,
     callback: ListenerCallback<D, E>,
     options?: ListenerOptions<D, E, R>
-  ) {
+  ): () => void {
     if (event === '*') {
       throw new Error('Event name "*" is reserved and cannot be used.')
     }
@@ -54,14 +69,16 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     if (typeof events[event] === 'undefined') _create(event)
 
     const self = events[event]
-    if (!self) return
+    if (!self) return () => {}
 
     if (options?.isDistinct) {
-      if (self[EventProperty.listeners].some((listener) => listener[ListenerProperty.callback] === callback)) return
+      if (self[EventProperty.listeners].some((listener) => listener[ListenerProperty.callback] === callback)) {
+        return () => {}
+      }
     }
 
     if (options?.signal) {
-      if (options.signal.aborted) return
+      if (options.signal.aborted) return () => {}
 
       options.signal.addEventListener('abort', () => {
         remove(event, callback)
@@ -112,6 +129,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
         }
       })
     }
+
+    return () => {
+      remove(event, callback)
+    }
   }
 
   function emit<E extends keyof D>(event: E, ...parameters: Parameters<D[E]>) {
@@ -159,15 +180,15 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   }
 
   function on<E extends keyof D>(event: E, callback: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) {
-    _listen(ListenerType.on, event, callback, options)
+    return _listen(ListenerType.on, event, callback, options)
   }
 
   function once<E extends keyof D>(event: E, callback: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) {
-    _listen(ListenerType.once, event, callback, options)
+    return _listen(ListenerType.once, event, callback, options)
   }
 
   function only<E extends keyof D>(event: E, callback: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) {
-    _listen(ListenerType.only, event, callback, options)
+    return _listen(ListenerType.only, event, callback, options)
   }
 
   function bind(
@@ -186,11 +207,13 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     }
   ) {
     const keys = Reflect.ownKeys(events) as (keyof D)[]
-    if (keys.length === 0) return
+    if (keys.length === 0) return () => {}
 
     if (keys.some((event) => event === '*')) {
       throw new Error('Event name "*" is reserved and cannot be used.')
     }
+
+    const removeFns: (() => void)[] = []
 
     keys.forEach((event) => {
       const callback = events[event]
@@ -199,8 +222,12 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
       const type = types?.[event] ?? types?.['*'] ?? ListenerType.on
       const _options = defaults({}, options?.[event], options?.['*'])
 
-      _listen(type, event, callback, _options)
+      removeFns.push(_listen(type, event, callback, _options))
     })
+
+    return () => {
+      removeFns.forEach((cancel) => cancel())
+    }
   }
 
   function promise<E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>): Promise<Parameters<D[E]>> {
@@ -261,21 +288,6 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
         }, _options.timeout)
       }
     })
-  }
-
-  function remove<E extends keyof D>(event: E, callback: ListenerCallback<D, E>) {
-    if (event === '*') {
-      throw new Error('Event name "*" is reserved and cannot be used.')
-    }
-
-    if (typeof events[event] === 'undefined') return
-
-    const self = events[event]
-    if (!self) return
-
-    self[EventProperty.listeners] = self[EventProperty.listeners].filter(
-      (listener) => listener[ListenerProperty.callback] !== callback
-    )
   }
 
   function listeners<E extends keyof D>(event: E): Listener<D, E, R>[] {

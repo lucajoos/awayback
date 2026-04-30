@@ -174,6 +174,7 @@ events.emit('event', 'some', 'data')
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `isDistinct` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- **returns:** [`<Function>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) A cleanup function that, when called, removes the listener.
 
 The callback is executed each time the event is fired.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -274,6 +275,18 @@ setTimeout(() => {
 }, 1000)
 ```
 
+The function returns an unsubscribe function, providing a convenient way to stop listening without manually calling `.remove()`.
+
+```javascript
+const unsubscribe = events.on('event', (data) => {
+  console.log(data)
+})
+
+events.emit('event', 'hello') // Logs: hello
+
+unsubscribe() // Stop listening
+```
+
 ### .once(event, callback, options)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -286,6 +299,7 @@ setTimeout(() => {
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `isDistinct` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- **returns:** [`<Function>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) A cleanup function that, when called, removes the listener.
 
 The callback is only executed once when the event is called first.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -371,6 +385,18 @@ setTimeout(() => {
 }, 1000)
 ```
 
+The function returns an unsubscribe function, providing a convenient way to stop listening without manually calling `.remove()`.
+
+```javascript
+const unsubscribe = events.once('event', (data) => {
+  console.log(data)
+})
+
+events.emit('event', 'hello') // Logs: hello
+
+unsubscribe() // Stop listening
+```
+
 ### .only(event, callback, options)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -383,6 +409,7 @@ setTimeout(() => {
   - `signal` [&lt;AbortSignal&gt;](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
   - `isReplaying` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   - `isDistinct` [&lt;Boolean&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- **returns:** [`<Function>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) A cleanup function that, when called, removes the listener.
 
 The callback is only executed if this callback is the first listener registered and no other listener has been executed yet.
 The arguments from the `emit` function call are also exposed to the listener.
@@ -476,6 +503,18 @@ setTimeout(() => {
 }, 1000)
 ```
 
+The function returns an unsubscribe function, providing a convenient way to stop listening without manually calling `.remove()`.
+
+```javascript
+const unsubscribe = events.only('event', (data) => {
+  console.log(data)
+})
+
+events.emit('event', 'hello') // Logs: hello
+
+unsubscribe() // Stop listening
+```
+
 ### .bind(events, types, options)
 
 - `events` [&lt;Object&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
@@ -489,13 +528,13 @@ setTimeout(() => {
 
 Binds multiple event listeners simultaneously. This is a highly efficient way to register a group of related listeners, configure their listener types, and pass shared or specific options all at once.
 
-````javascript
+```javascript
 import { ListenerType } from 'awayback'
 
 // Basic binding
 events.bind({
   login: (userId) => console.log('Logged in:', userId),
-  logout: (userId) => console.log('Logged out:', userId)
+  logout: (userId) => console.log('Logged out:', userId),
 })
 
 // Binding with specific types and wildcard defaults
@@ -503,16 +542,28 @@ events.bind(
   {
     ready: () => console.log('App ready!'),
     error: (err) => console.error('App error:', err),
-    update: (data) => console.log('App updated:', data)
+    update: (data) => console.log('App updated:', data),
   },
   {
     ready: ListenerType.once, // 'ready' will only execute once
-    '*': ListenerType.on      // All others will execute normally (default)
+    '*': ListenerType.on, // All others will execute normally (default)
   },
   {
-    '*': { isDistinct: true } // Applies `isDistinct: true` to all bound events
+    '*': { isDistinct: true }, // Applies `isDistinct: true` to all bound events
   }
 )
+```
+
+Calling the returned function will unbind all events associated with that specific group.
+
+```javascript
+const unsubscribe = events.bind({
+  login: (id) => console.log('In:', id),
+  logout: (id) => console.log('Out:', id),
+})
+
+unsubscribe() // Removes both login and logout listeners
+```
 
 ### .promise(event, options): Promise
 
@@ -540,7 +591,7 @@ const result = await events.promise('ready')
 
 console.log(result)
 // OUTPUT: ['some', 'data']
-````
+```
 
 If the `predicate` option is provided, the promise will only be resolved if the predicate function returns true.
 

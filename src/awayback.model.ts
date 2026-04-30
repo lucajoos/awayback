@@ -59,9 +59,9 @@ export type Events<D extends Definition, R extends (keyof D)[] | undefined> = {
 
 export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = undefined> = {
   emit: <E extends keyof D>(event: E, ...data: Parameters<D[E]>) => void
-  on: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void
-  once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void
-  only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void
+  on: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => () => void
+  once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => () => void
+  only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => () => void
   promise: <E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>) => Promise<Parameters<D[E]>>
   bind: (
     events: Partial<{
@@ -81,7 +81,7 @@ export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = u
           '*'?: ListenerOptions<D, keyof D, R>
         })
       | undefined
-  ) => void
+  ) => () => void
   remove: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>) => void
   listeners: <E extends keyof D>(event: E) => Readonly<Listener<D, E, R>>[]
   destroy: () => void

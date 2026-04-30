@@ -765,4 +765,62 @@ describe('awayback', () => {
       // If it doesn't crash, the test passes
     })
   })
+
+  describe('Cleanup Functions (Functional Unsubscribe)', () => {
+    let events: Awayback<Events>
+
+    beforeEach(() => {
+      events = awayback<Events>()
+    })
+
+    it('should remove a listener when the function returned by .on() is called', () => {
+      const handler = vi.fn()
+      const unsubscribe = events.on('foo', handler)
+
+      unsubscribe() // Unsubscribe immediately
+      events.emit('foo', 'bar')
+
+      expect(handler).not.toHaveBeenCalled()
+      expect(events.listeners('foo')).toHaveLength(0)
+    })
+
+    it('should remove a listener when the function returned by .once() is called before execution', () => {
+      const handler = vi.fn()
+      const unsubscribe = events.once('foo', handler)
+
+      unsubscribe()
+      events.emit('foo', 'bar')
+
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('should remove a listener when the function returned by .only() is called', () => {
+      const handler = vi.fn()
+      const unsubscribe = events.only('foo', handler)
+
+      unsubscribe()
+      events.emit('foo', 'bar')
+
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('should remove all bound listeners when the function returned by .bind() is called', () => {
+      const fooHandler = vi.fn()
+      const barHandler = vi.fn()
+
+      const unbind = events.bind({
+        foo: fooHandler,
+        bar: barHandler,
+      })
+
+      unbind() // Cleanup both
+      events.emit('foo', 'test')
+      events.emit('bar', 1, 2)
+
+      expect(fooHandler).not.toHaveBeenCalled()
+      expect(barHandler).not.toHaveBeenCalled()
+      expect(events.listeners('foo')).toHaveLength(0)
+      expect(events.listeners('bar')).toHaveLength(0)
+    })
+  })
 })
