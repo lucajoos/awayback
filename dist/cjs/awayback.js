@@ -11,25 +11,45 @@ function awayback(replayable) {
     const events = {};
     const timeouts = {};
     function _create(event) {
+        if (event === '*') {
+            throw new Error('Event name "*" is reserved and cannot be used.');
+        }
+        if (typeof events[event] !== 'undefined')
+            return;
         events[event] = {
             [awayback_model_js_1.EventProperty.listeners]: [],
             [awayback_model_js_1.EventProperty.parameters]: [],
             [awayback_model_js_1.EventProperty.emissions]: 0,
         };
     }
+    function remove(event, callback) {
+        if (event === '*') {
+            throw new Error('Event name "*" is reserved and cannot be used.');
+        }
+        if (typeof events[event] === 'undefined')
+            return;
+        const self = events[event];
+        if (!self)
+            return;
+        self[awayback_model_js_1.EventProperty.listeners] = self[awayback_model_js_1.EventProperty.listeners].filter((listener) => listener[awayback_model_js_1.ListenerProperty.callback] !== callback);
+    }
     function _listen(type, event, callback, options) {
+        if (event === '*') {
+            throw new Error('Event name "*" is reserved and cannot be used.');
+        }
         if (typeof events[event] === 'undefined')
             _create(event);
         const self = events[event];
         if (!self)
-            return;
+            return () => { };
         if (options?.isDistinct) {
-            if (self[awayback_model_js_1.EventProperty.listeners].some((listener) => listener[awayback_model_js_1.ListenerProperty.callback] === callback))
-                return;
+            if (self[awayback_model_js_1.EventProperty.listeners].some((listener) => listener[awayback_model_js_1.ListenerProperty.callback] === callback)) {
+                return () => { };
+            }
         }
         if (options?.signal) {
             if (options.signal.aborted)
-                return;
+                return () => { };
             options.signal.addEventListener('abort', () => {
                 remove(event, callback);
             });
@@ -73,8 +93,14 @@ function awayback(replayable) {
                 }
             });
         }
+        return () => {
+            remove(event, callback);
+        };
     }
     function emit(event, ...parameters) {
+        if (event === '*') {
+            throw new Error('Event name "*" is reserved and cannot be emitted.');
+        }
         if (typeof events[event] === 'undefined')
             _create(event);
         const self = events[event];
@@ -107,15 +133,41 @@ function awayback(replayable) {
         });
     }
     function on(event, callback, options) {
-        _listen(awayback_model_js_1.ListenerType.on, event, callback, options);
+        return _listen(awayback_model_js_1.ListenerType.on, event, callback, options);
     }
     function once(event, callback, options) {
-        _listen(awayback_model_js_1.ListenerType.once, event, callback, options);
+        return _listen(awayback_model_js_1.ListenerType.once, event, callback, options);
     }
     function only(event, callback, options) {
-        _listen(awayback_model_js_1.ListenerType.only, event, callback, options);
+        return _listen(awayback_model_js_1.ListenerType.only, event, callback, options);
+    }
+    function bind(events, types, options) {
+        const keys = Reflect.ownKeys(events);
+        if (keys.length === 0)
+            return () => { };
+        if (keys.some((event) => event === '*')) {
+            throw new Error('Event name "*" is reserved and cannot be used.');
+        }
+        const removeFns = [];
+        keys.forEach((event) => {
+            const callback = events[event];
+            if (!callback)
+                return;
+            const type = types?.[event] ?? types?.['*'] ?? awayback_model_js_1.ListenerType.on;
+            const _options = (0, lodash_es_1.defaults)({}, options?.[event], options?.['*']);
+            removeFns.push(_listen(type, event, callback, _options));
+        });
+        return () => {
+            removeFns.forEach((cancel) => cancel());
+        };
     }
     function promise(event, options) {
+        if (event === '*') {
+            throw new Error('Event name "*" is reserved and cannot be used.');
+        }
+        if (options?.signal?.aborted) {
+            return Promise.reject(options.signal.reason);
+        }
         return new Promise((resolve, reject) => {
             const controller = new AbortController();
             const signal = (0, helpers_js_1.any)(controller.signal, options?.signal);
@@ -152,15 +204,10 @@ function awayback(replayable) {
             }
         });
     }
-    function remove(event, callback) {
-        if (typeof events[event] === 'undefined')
-            return;
-        const self = events[event];
-        if (!self)
-            return;
-        self[awayback_model_js_1.EventProperty.listeners] = self[awayback_model_js_1.EventProperty.listeners].filter((listener) => listener[awayback_model_js_1.ListenerProperty.callback] !== callback);
-    }
     function listeners(event) {
+        if (event === '*') {
+            throw new Error('Event name "*" is reserved and cannot be used.');
+        }
         if (typeof events[event] === 'undefined')
             return [];
         const self = events[event];
@@ -173,7 +220,7 @@ function awayback(replayable) {
             clearTimeout(timeouts[id]);
             delete timeouts[id];
         });
-        Object.keys(events).forEach((event) => {
+        Reflect.ownKeys(events).forEach((event) => {
             delete events[event];
         });
     }
@@ -182,6 +229,7 @@ function awayback(replayable) {
         on,
         once,
         only,
+        bind,
         promise,
         remove,
         listeners,

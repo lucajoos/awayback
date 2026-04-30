@@ -1,5 +1,7 @@
 export type Definition = {
-    [key: string]: (...parameters: any[]) => void;
+    [key: PropertyKey]: (...parameters: any[]) => void;
+} & {
+    '*'?: never;
 };
 export declare enum ListenerType {
     on = 0,
@@ -45,10 +47,21 @@ export type Events<D extends Definition, R extends (keyof D)[] | undefined> = {
 };
 export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = undefined> = {
     emit: <E extends keyof D>(event: E, ...data: Parameters<D[E]>) => void;
-    on: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
-    once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
-    only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
+    on: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => () => void;
+    once: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => () => void;
+    only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => () => void;
     promise: <E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>) => Promise<Parameters<D[E]>>;
+    bind: (events: Partial<{
+        [E in keyof D]: ListenerCallback<D, E>;
+    }>, types?: (Partial<{
+        [E in keyof D]: ListenerType;
+    }> & {
+        '*'?: ListenerType;
+    }) | undefined, options?: (Partial<{
+        [E in keyof D]: ListenerOptions<D, E, R>;
+    }> & {
+        '*'?: ListenerOptions<D, keyof D, R>;
+    }) | undefined) => () => void;
     remove: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>) => void;
     listeners: <E extends keyof D>(event: E) => Readonly<Listener<D, E, R>>[];
     destroy: () => void;
