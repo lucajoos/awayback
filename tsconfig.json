@@ -4,7 +4,7 @@
     "lib": ["ES2022", "DOM"],
     "types": [],
 
-    "rootDir": ".",
+    "rootDir": "./src",
     "outDir": "./dist",
 
     "esModuleInterop": true,

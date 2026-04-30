@@ -23,6 +23,10 @@ function awayback(replayable) {
         const self = events[event];
         if (!self)
             return;
+        if (options?.isDistinct) {
+            if (self[awayback_model_js_1.EventProperty.listeners].some((listener) => listener[awayback_model_js_1.ListenerProperty.callback] === callback))
+                return;
+        }
         if (options?.signal) {
             if (options.signal.aborted)
                 return;
@@ -156,6 +160,14 @@ function awayback(replayable) {
             return;
         self[awayback_model_js_1.EventProperty.listeners] = self[awayback_model_js_1.EventProperty.listeners].filter((listener) => listener[awayback_model_js_1.ListenerProperty.callback] !== callback);
     }
+    function listeners(event) {
+        if (typeof events[event] === 'undefined')
+            return [];
+        const self = events[event];
+        if (!self)
+            return [];
+        return self[awayback_model_js_1.EventProperty.listeners];
+    }
     function destroy() {
         Object.keys(timeouts).forEach((id) => {
             clearTimeout(timeouts[id]);
@@ -172,6 +184,7 @@ function awayback(replayable) {
         only,
         promise,
         remove,
+        listeners,
         destroy,
     };
 }

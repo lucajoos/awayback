@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import awayback from '../src/awayback'
-import { Awayback, ListenerProperty } from '../src/models/awayback.model.ts'
+import { Awayback, ListenerProperty } from '../src/awayback.model.ts'
 
 type Events = {
   foo: (data: string) => void

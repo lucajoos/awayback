@@ -10,6 +10,7 @@ export type ListenerOptions<D extends Definition, E extends keyof D, R extends (
     predicate?: (...parameters: Parameters<D[E]>) => boolean;
     signal?: AbortSignal;
     isReplaying?: R extends (keyof D)[] ? (E extends R[number] ? boolean : false) : false;
+    isDistinct?: boolean;
 };
 export type PromiseOptions<D extends Definition, E extends keyof D, R extends (keyof D)[] | undefined> = ListenerOptions<D, E, R> & {
     timeout?: number;
@@ -49,5 +50,6 @@ export type Awayback<D extends Definition, R extends (keyof D)[] | undefined = u
     only: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>, options?: ListenerOptions<D, E, R>) => void;
     promise: <E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>) => Promise<Parameters<D[E]>>;
     remove: <E extends keyof D>(event: E, handler: ListenerCallback<D, E>) => void;
+    listeners: <E extends keyof D>(event: E) => Readonly<Listener<D, E, R>>[];
     destroy: () => void;
 };

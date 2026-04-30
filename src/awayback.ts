@@ -1,5 +1,4 @@
 import { defaults, merge } from 'lodash-es'
-import { any } from './helpers.js'
 import {
   Definition,
   EventProperty,
@@ -11,7 +10,8 @@ import {
   ListenerType,
   type Awayback,
   type PromiseOptions,
-} from './models/awayback.model.js'
+} from './awayback.model.js'
+import { any } from './helpers.js'
 
 /**
  * @license
