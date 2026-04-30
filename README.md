@@ -98,17 +98,55 @@ events.on('logout', () => {}, { isReplaying: false })
 
 For optimal performance in applications with many events, use the `replay` parameter to restrict replay functionality to only the events that need it. Events not specified in the replay array will not store their historical data, reducing memory usage and improving performance when handling high-frequency events.
 
+#### Type-Safe Definitions (`PropertyKey`)
+
+The event definition type `D` extends `Definition`, which supports **strings**, **numbers**, and **symbols** as keys. This allows you to use unique symbols to avoid naming collisions in complex applications.
+
+```typescript
+const symbol = Symbol('event')
+
+type Events = {
+  [symbol]: (status: string) => void // Symbol key
+  100: (message: string) => void // Number key
+  other: () => void // String key
+}
+
+const events = awayback<Events>()
+
+events.on(symbol, (status) => {
+  console.log(status)
+})
+
+events.emit(symbol, 'active')
+```
+
+#### Invalid Keys
+
+The event name `"*"` is reserved for internal use (such as wildcard defaults in `.bind()`) and cannot be used as a key in your definitions.
+
 ### .emit(event, ...data)
 
 - `event` [&lt;String&gt;](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 - `...data` &lt;Any&gt;
 
 Events can be fired using the function `emit`.
-The first required argument is the name of the event, the second, optional one, is data that can be transmitted.
+The first required argument is the name of the event (key). The second argument (optional) is data that should be transmitted.
 
 ```javascript
 events.emit('name', 'data')
 ```
+
+It is possible to use strings, symbols or numbers as event keys.
+
+```javascript
+const symbol = Symbol('event')
+
+events.emit('name', 'data')
+events.emit(symbol, 'data')
+events.emit(404, 'not found')
+```
+
+---
 
 #### Multiple arguments
 

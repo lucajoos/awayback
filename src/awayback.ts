@@ -185,8 +185,7 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
       '*'?: ListenerOptions<D, keyof D, R>
     }
   ) {
-    const keys = Object.keys(events) as (keyof D)[]
-
+    const keys = Reflect.ownKeys(events) as (keyof D)[]
     if (keys.length === 0) return
 
     if (keys.some((event) => event === '*')) {
@@ -207,6 +206,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   function promise<E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>): Promise<Parameters<D[E]>> {
     if (event === '*') {
       throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
+    if (options?.signal?.aborted) {
+      return Promise.reject(options.signal.reason)
     }
 
     return new Promise((resolve, reject) => {
@@ -294,8 +297,8 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
       delete timeouts[id]
     })
 
-    Object.keys(events).forEach((event) => {
-      delete events[event]
+    Reflect.ownKeys(events).forEach((event) => {
+      delete events[event as keyof typeof events]
     })
   }
 

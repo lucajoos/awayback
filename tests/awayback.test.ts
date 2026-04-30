@@ -2,11 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import awayback from '../src/awayback'
 import { Awayback, ListenerProperty, ListenerType } from '../src/awayback.model.ts'
 
+const symbol = Symbol('test')
+
 type Events = {
   foo: (data: string) => void
   bar: (x: number, y: number) => void
   arr: (arr: string[]) => void
   noargs: () => void
+  [symbol]: (data: string) => void
+  [123]: (data: string) => void
 }
 
 describe('awayback', () => {
@@ -14,6 +18,94 @@ describe('awayback', () => {
 
   beforeEach(() => {
     events = awayback<Events, ['foo']>(['foo'])
+  })
+
+  describe('PropertyKey support (string, number, symbol)', () => {
+    it('should support Symbol as an event name', () => {
+      const handler = vi.fn()
+
+      events.on(symbol, handler)
+      events.emit(symbol, 'symbol-data')
+
+      expect(handler).toHaveBeenCalledWith('symbol-data')
+    })
+
+    it('should support number as an event name', () => {
+      const handler = vi.fn()
+
+      events.on(123, handler)
+      events.emit(123, 'number-data')
+
+      expect(handler).toHaveBeenCalledWith('number-data')
+    })
+
+    it('should correctly remove Symbol-based listeners', () => {
+      const handler = vi.fn()
+
+      events.on(symbol, handler)
+      events.remove(symbol, handler)
+      events.emit(symbol, 'data')
+
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('should correctly destroy Symbol-based events', () => {
+      const handler = vi.fn()
+
+      events.on(symbol, handler)
+      events.destroy()
+
+      events.emit(symbol, 'data')
+      expect(handler).not.toHaveBeenCalled()
+      expect(events.listeners(symbol)).toEqual([])
+    })
+  })
+
+  describe('Reserved event name "*"', () => {
+    const errorMessage = 'reserved'
+
+    it('should throw when calling .on with "*"', () => {
+      // @ts-expect-error - '*' is forbidden by types
+      expect(() => events.on('*', () => {})).toThrow(errorMessage)
+    })
+
+    it('should throw when calling .emit with "*"', () => {
+      // @ts-expect-error '*' is forbidden by types
+      expect(() => events.emit('*')).toThrow(errorMessage)
+    })
+
+    it('should throw when calling .once with "*"', () => {
+      // @ts-expect-error '*' is forbidden by types
+      expect(() => events.once('*', () => {})).toThrow(errorMessage)
+    })
+
+    it('should throw when calling .only with "*"', () => {
+      // @ts-expect-error '*' is forbidden by types
+      expect(() => events.only('*', () => {})).toThrow(errorMessage)
+    })
+
+    it('should throw when calling .promise with "*"', () => {
+      // @ts-expect-error '*' is forbidden by types
+      expect(() => events.promise('*')).toThrow(errorMessage)
+    })
+
+    it('should throw when calling .bind with "*" in the events object', () => {
+      expect(() =>
+        events.bind({
+          // @ts-expect-error '*' is forbidden by types
+          '*': () => {},
+        })
+      ).toThrow(errorMessage)
+    })
+
+    it('should NOT throw when using "*" as a wildcard fallback in .bind', () => {
+      const handler = vi.fn()
+      expect(() => events.bind({ foo: handler }, { '*': ListenerType.once })).not.toThrow()
+
+      events.emit('foo', 'a')
+      events.emit('foo', 'b')
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('.listeners', () => {
