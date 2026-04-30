@@ -520,7 +520,7 @@ events.destroy()
 
 MIT License
 
-Copyright (c) 2025 Luca Joos
+Copyright (c) 2022-2026 Luca Raúl Joos
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
