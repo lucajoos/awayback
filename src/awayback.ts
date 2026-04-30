@@ -28,6 +28,12 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   const timeouts: Record<string, ReturnType<typeof setTimeout>> = {}
 
   function _create<E extends keyof D>(event: E) {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
+    if (typeof events[event] !== 'undefined') return
+
     events[event] = {
       [EventProperty.listeners]: <Listener<D, E, R>[]>[],
       [EventProperty.parameters]: <Parameters<D[E]>[]>[],
@@ -41,6 +47,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
     callback: ListenerCallback<D, E>,
     options?: ListenerOptions<D, E, R>
   ) {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
     if (typeof events[event] === 'undefined') _create(event)
 
     const self = events[event]
@@ -105,6 +115,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   }
 
   function emit<E extends keyof D>(event: E, ...parameters: Parameters<D[E]>) {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be emitted.')
+    }
+
     if (typeof events[event] === 'undefined') _create(event)
 
     const self = events[event]
@@ -171,7 +185,15 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
       '*'?: ListenerOptions<D, keyof D, R>
     }
   ) {
-    ;(Object.keys(events) as (keyof D)[]).forEach((event) => {
+    const keys = Object.keys(events) as (keyof D)[]
+
+    if (keys.length === 0) return
+
+    if (keys.some((event) => event === '*')) {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
+    keys.forEach((event) => {
       const callback = events[event]
       if (!callback) return
 
@@ -183,6 +205,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   }
 
   function promise<E extends keyof D>(event: E, options?: PromiseOptions<D, E, R>): Promise<Parameters<D[E]>> {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
     return new Promise((resolve, reject) => {
       const controller = new AbortController()
       const signal = any(controller.signal, options?.signal)
@@ -235,6 +261,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   }
 
   function remove<E extends keyof D>(event: E, callback: ListenerCallback<D, E>) {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
     if (typeof events[event] === 'undefined') return
 
     const self = events[event]
@@ -246,6 +276,10 @@ function awayback<D extends Definition, const R extends (keyof D)[] | undefined 
   }
 
   function listeners<E extends keyof D>(event: E): Listener<D, E, R>[] {
+    if (event === '*') {
+      throw new Error('Event name "*" is reserved and cannot be used.')
+    }
+
     if (typeof events[event] === 'undefined') return []
 
     const self = events[event]

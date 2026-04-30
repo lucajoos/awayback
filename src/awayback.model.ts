@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Definition = { [key: string]: (...parameters: any[]) => void } & {
+export type Definition = { [key: string | symbol]: (...parameters: any[]) => void } & {
   '*'?: never
 }
 
